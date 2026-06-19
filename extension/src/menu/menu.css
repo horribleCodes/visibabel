@@ -1,0 +1,120 @@
+html,
+body {
+  margin: 0;
+  font-family: Segoe UI, Tahoma, sans-serif;
+  background: #f5f7fa;
+  color: #1f2937;
+}
+
+#root {
+  box-sizing: border-box;
+  width: 360px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.panel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #d7dfea;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 8px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 13px;
+  color: #334155;
+}
+
+.status-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.status-chip-label {
+  color: #475569;
+  font-size: 12px;
+}
+
+.runtime-settings {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.runtime-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.badge {
+  display: inline-flex;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.loading {
+  background: #fff7e6;
+  color: #92400e;
+  border-color: #f5d08c;
+}
+
+.badge.online {
+  background: #eaf9ef;
+  color: #166534;
+  border-color: #9dd7ad;
+}
+
+.badge.offline {
+  background: #feecec;
+  color: #991b1b;
+  border-color: #f3a8a8;
+}
+
+.badge.degraded {
+  background: #fff7e6;
+  color: #92400e;
+  border-color: #f5d08c;
+}
+
+button {
+  border: 1px solid #c7d2e0;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #eef4ff;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: #f3f4f6;
+}
+
+#status {
+  min-height: 18px;
+  font-size: 12px;
+  color: #334155;
+}

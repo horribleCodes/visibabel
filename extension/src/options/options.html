@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visibabel Options</title>
+    <link rel="stylesheet" href="options.css" />
+</head>
+
+<body>
+    <main class="container">
+        <h1>Extension Settings</h1>
+
+        <form id="options-form">
+            <div class="actions-row sticky-actions-row">
+                <button type="submit">Save</button>
+                <button type="button" id="reset">Reset to Default</button>
+                <span id="options-status-badge" class="status synced">Checking...</span>
+            </div>
+
+            <h2>General</h2>
+            <div class="section">
+                <div class="status-row">
+                    <span>Ollama status:</span>
+                    <span id="ollama-status-badge" class="badge loading">Checking...</span>
+                </div>
+
+                <div class="status-row">
+                    <span>OCR SDK status:</span>
+                    <span id="ocr-sdk-status-badge" class="badge loading">Checking...</span>
+                </div>
+                <div class="hint-row">
+                    <span id="ocr-sdk-endpoint" class="hint-text"></span>
+                </div>
+
+                <label>Endpoint URL
+                    <input type="text" id="endpoint" />
+                </label>
+
+                <label>GLM OCR Model
+                    <input type="text" id="glmModel" />
+                </label>
+
+                <div class="grid-row">
+                    <label>Target Language
+                        <input type="text" id="targetLanguage" />
+                    </label>
+                    <label>Max Image Size
+                        <input type="number" id="maxImageSize" />
+                    </label>
+                </div>
+
+                <div class="grid-row">
+                    <label>Timeout (ms)
+                        <input type="number" id="timeoutMs" />
+                    </label>
+                    <label>Retry Count
+                        <input type="number" id="retryCount" />
+                    </label>
+                </div>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="debug" />
+                    <span>Debug mode</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="enableNotifications" />
+                    <span>Show notifications on completion and errors</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="autoOpenPopupOnComplete" />
+                    <span>Auto-open popup after successful translation</span>
+                </label>
+
+                <label>Auto OCR URL Whitelist
+                    <textarea id="autoOcrWhitelist" rows="4"
+                        placeholder="One pattern per line, e.g.&#10;https://example.com/*&#10;https://*.my-site.org/view?*"></textarea>
+                </label>
+            </div>
+
+            <h2>OCR</h2>
+            <div class="section">
+                <label>OCR Model
+                    <select id="ocrModel"></select>
+                </label>
+                <label>OCR Type
+                    <select id="ocrType">
+                        <option value="completion">Completion</option>
+                        <option value="chat">Chat</option>
+                        <option value="chat_fallback">Chat w/ Fallback</option>
+                    </select>
+                </label>
+                <label>OCR Prompt Template
+                    <textarea id="ocrPromptTemplate" rows="4"></textarea>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="skip-translation" />
+                    <span>Skip translation step</span>
+                </label>
+            </div>
+
+            <h2>Translate</h2>
+            <div class="section">
+                <label>Translation Model
+                    <select id="translateModel"></select>
+                </label>
+                <label>Translation Type
+                    <select id="translateType">
+                        <option value="completion">Completion</option>
+                        <option value="chat">Chat</option>
+                        <option value="chat_fallback">Chat w/ Fallback</option>
+                    </select>
+                </label>
+                <label>Translation Prompt Template
+                    <textarea id="translatePromptTemplate" rows="5"></textarea>
+                </label>
+            </div>
+
+            <h2>Layout</h2>
+            <div class="section">
+                <label>Layout Chunk Strategy
+                    <select id="layoutChunkStrategy">
+                        <option value="none">None</option>
+                        <option value="prompt-only">Prompt Only</option>
+                        <option value="one-group-per-request">One Group Per Request</option>
+                        <option value="hybrid-size-capped">Hybrid Size Capped</option>
+                    </select>
+                </label>
+
+                <label>Layout Max Chunk Size
+                    <input type="number" id="layoutMaxChunkSize" min="100" step="1" />
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" id="layoutDebugRawPayload" />
+                    <span>Include raw layout payload in results (debug)</span>
+                </label>
+            </div>
+
+            <h2>Developer Tools</h2>
+            <div class="section developer-tools-section">
+                <p class="section-note">Advanced controls for local testing and model/session inspection.</p>
+                <div class="actions-row">
+                    <button type="button" id="test">Test Connection</button>
+                    <button type="button" id="refresh-models">Refresh Models</button>
+                    <button type="button" id="load-models">Load Models</button>
+                    <button type="button" id="unload-models">Unload Models</button>
+                </div>
+
+                <div class="models-box">
+                    <h3>Currently Loaded Models</h3>
+                    <ul id="loaded-models" class="simple-list"></ul>
+                </div>
+
+                <div class="models-box">
+                    <h3>OCR SDK Loaded Sessions</h3>
+                    <ul id="ocr-sdk-loaded-models" class="simple-list"></ul>
+                </div>
+
+                <div id="debug-log" class="debug-log" aria-live="polite">No debug output yet.</div>
+            </div>
+        </form>
+
+        <div id="status"></div>
+    </main>
+    <script src="../../dist/options/options.js" type="module"></script>
+</body>
+
+</html>

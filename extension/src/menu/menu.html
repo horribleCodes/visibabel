@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visibabel Menu</title>
+    <link rel="stylesheet" href="menu.css" />
+</head>
+
+<body>
+    <div id="root">
+        <h2>Visibabel Menu</h2>
+
+        <section class="panel">
+            <h3 class="panel-title">Actions</h3>
+            <button id="capture-tab">Capture Visible Tab</button>
+            <button id="select-region">Select Region</button>
+            <button id="open-results">Open Results</button>
+            <button id="open-options">Settings</button>
+        </section>
+
+        <section class="panel">
+            <h3 class="panel-title">Runtime Tools</h3>
+            <div class="status-chip-row">
+                <span class="status-chip-label">Ollama</span>
+                <span id="ollama-status-badge" class="badge loading">Checking...</span>
+                <span class="status-chip-label">OCR SDK</span>
+                <span id="ocr-sdk-status-badge" class="badge loading">Checking...</span>
+            </div>
+            <div class="runtime-settings">
+                <label class="runtime-setting-row">
+                    <input type="checkbox" id="enable-layout-inference" checked />
+                    <span>Enable Layout Endpoint Inference</span>
+                </label>
+                <label class="runtime-setting-row">
+                    <input type="checkbox" id="enable-auto-pipeline" checked />
+                    <span>Enable Automatic Pipeline</span>
+                </label>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h3 class="panel-title">Status</h3>
+            <div id="status"></div>
+        </section>
+    </div>
+    <script src="../../dist/menu/menu.js" type="module"></script>
+</body>
+
+</html>

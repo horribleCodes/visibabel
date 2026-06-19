@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "module": "esnext",
+    "moduleDetection": "auto",
+    "target": "es2022",
+    "lib": ["ES2022", "DOM"],
+    "types": [],
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "sourceMap": false
+  },
+  "include": [
+    "src/background/**/*.ts",
+    "src/menu/**/*.ts",
+    "src/popup/**/*.ts",
+    "src/results/**/*.ts",
+    "src/options/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/content/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/__tests__/**",
+    "tests/**"
+  ]
+}

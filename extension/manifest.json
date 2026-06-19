@@ -1,0 +1,56 @@
+{
+    "manifest_version": 3,
+    "name": "Visibabel",
+    "version": "0.1.0",
+    "description": "Capture images, OCR, and translate text using local Ollama GLM-OCR.",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "tabs",
+        "scripting",
+        "contextMenus",
+        "notifications"
+    ],
+    "host_permissions": [
+        "http://localhost/*",
+        "https://*/*",
+        "http://*/*"
+    ],
+    "background": {
+        "service_worker": "dist/background/service-worker.js",
+        "type": "module"
+    },
+    "action": {
+        "default_popup": "src/menu/menu.html",
+        "default_icon": {
+            "16": "assets/icons/icon16.png",
+            "32": "assets/icons/icon32.png",
+            "48": "assets/icons/icon48.png",
+            "128": "assets/icons/icon128.png"
+        }
+    },
+    "options_page": "src/options/options.html",
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "dist/content/selector.js"
+            ],
+            "css": [
+                "src/content/overlay.css"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "icons": {
+        "16": "assets/icons/icon16.png",
+        "32": "assets/icons/icon32.png",
+        "48": "assets/icons/icon48.png",
+        "128": "assets/icons/icon128.png"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

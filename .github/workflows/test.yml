@@ -1,0 +1,78 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: extension/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: extension
+      - name: Build extension
+        run: npm run build:extension
+        working-directory: extension
+      - name: Verify emit sync
+        run: npm run verify:emit-sync
+        working-directory: extension
+      - name: Run unit tests
+        run: npm run test:unit
+        working-directory: extension
+
+  ollama-negative:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start Ollama
+        run: |
+          ollama serve &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:11434/api/tags && exit 0
+            sleep 2
+          done
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ollama/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ollama
+      - name: Run negative tests
+        run: npm run test:negative
+        working-directory: ollama
+        env:
+          OLLAMA_ENDPOINT: http://127.0.0.1:11434
+
+  glm-ocr-negative:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            glm-ocr/requirements.txt
+            glm-ocr/requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+        working-directory: glm-ocr
+      - name: Run negative tests
+        run: pytest tests/test_service_negative.py -v
+        working-directory: glm-ocr

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visibabel Results</title>
+    <link rel="stylesheet" href="results.css" />
+</head>
+
+<body>
+    <div id="root">
+        <h2>Results</h2>
+        <div id="status"></div>
+        <div id="result-toolbar" class="result-toolbar">
+            <button id="toolbar-toggle-image" type="button" class="toolbar-button"
+                aria-label="Toggle latest source image" aria-pressed="false" title="Show latest source image" disabled>
+                <svg viewBox="0 0 24 24" class="toolbar-icon" aria-hidden="true" focusable="false">
+                    <path
+                        d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm2 0v12h12V6H6zm2 9 2.5-3 1.5 2 2.5-3.5L18 15H8zm1-6a1.5 1.5 0 1 0 0.001-3.001A1.5 1.5 0 0 0 9 9z" />
+                </svg>
+            </button>
+        </div>
+        <section id="result-image-panel" class="result-image-panel is-hidden">
+            <div id="result-image-stage" class="result-image-stage">
+                <img id="result-image" alt="Latest source image" />
+                <div id="overlay-container" class="overlay-container"></div>
+            </div>
+        </section>
+        <section id="result-panel" class="result-panel">
+            <div id="result-original"></div>
+            <div id="result-translated"></div>
+        </section>
+    </div>
+    <script src="../../dist/results/results.js" type="module"></script>
+</body>
+
+</html>

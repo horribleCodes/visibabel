@@ -1,0 +1,13 @@
+{
+  "name": "visibabel",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local OCR and translation for the browser",
+  "scripts": {
+    "build:extension": "npm --prefix ./extension run build:extension",
+    "test:extension": "npm --prefix ./extension run test:unit",
+    "test:ollama": "npm --prefix ./ollama test",
+    "test:ollama:negative": "npm --prefix ./ollama run test:negative",
+    "verify:extension": "npm --prefix ./extension run verify:emit-sync"
+  }
+}
