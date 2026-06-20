@@ -73,6 +73,9 @@ describe('OCR Client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:11434/api/chat');
     expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:11434/api/chat');
+    const ocrBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(ocrBody.options.stop).toEqual(['<|endoftext|>', '<|user|>']);
+    expect(ocrBody.messages.some((m: { role: string }) => m.role === 'system')).toBe(false);
   });
 
   it('should skip translation when skipTranslation is enabled', async () => {

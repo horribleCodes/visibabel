@@ -2,6 +2,12 @@ import { getConfig, normalizeConfig, type ExtensionConfig } from './config.js';
 import { logDebug } from './logger.js';
 import { buildPrompt } from './prompt.js';
 import { cleanOcrText } from './ocr-text-cleaner.js';
+import { buildOcrOllamaOptions } from './ollama-options.js';
+
+function isGlmOcrModel(model: string): boolean {
+  const normalized = String(model || '').trim().toLowerCase();
+  return normalized.includes('glm-ocr');
+}
 
 export class NoTextDetectedError extends Error {
   constructor(message = 'No text detected after OCR.') {
@@ -164,21 +170,26 @@ async function runOcrStep(base64Image: string, config: ExtensionConfig): Promise
     target_language: config.targetLanguage,
   });
 
+  const ocrOptions = buildOcrOllamaOptions();
+
+  const ocrMessages: Array<{ role: string; content: string; images?: string[] }> = [];
+  if (!isGlmOcrModel(config.ocrModel)) {
+    ocrMessages.push({
+      role: 'system',
+      content: 'You are an OCR engine. Extract text faithfully with preserved reading order and line breaks.',
+    });
+  }
+  ocrMessages.push({
+    role: 'user',
+    content: ocrPrompt,
+    images: [base64Image],
+  });
+
   const chatBody = {
     model: config.ocrModel,
     stream: false,
-    options: { temperature: 0 },
-    messages: [
-      {
-        role: 'system',
-        content: 'You are an OCR engine. Extract text faithfully with preserved reading order and line breaks.',
-      },
-      {
-        role: 'user',
-        content: ocrPrompt,
-        images: [base64Image],
-      },
-    ],
+    options: ocrOptions,
+    messages: ocrMessages,
   };
 
   const generateBody = {
@@ -186,13 +197,13 @@ async function runOcrStep(base64Image: string, config: ExtensionConfig): Promise
     prompt: ocrPrompt,
     images: [base64Image],
     stream: false,
-    options: { temperature: 0 },
+    options: ocrOptions,
   };
 
   const output = await runStep(endpointBase, config.ocrType, chatBody, generateBody, config.timeoutMs, config.retryCount, 'ocr');
 
   // Post-process output to remove extraneous text/artifacts
-  const processedText = cleanOcrText(output.text);
+  const processedText = cleanOcrText(output.text, { dedupe: config.enableOcrDedupe });
   if (!processedText) {
     throw new NoTextDetectedError();
   }

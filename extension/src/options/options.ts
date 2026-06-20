@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const ocrModel = requiredEl<HTMLSelectElement>('ocrModel');
   const ocrType = requiredEl<HTMLSelectElement>('ocrType');
   const ocrPromptTemplate = requiredEl<HTMLTextAreaElement>('ocrPromptTemplate');
+  const enableOcrDedupe = requiredEl<HTMLInputElement>('enableOcrDedupe');
   const skipTranslation = requiredEl<HTMLInputElement>('skip-translation');
 
   const translateModel = requiredEl<HTMLSelectElement>('translateModel');
@@ -122,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ocrModel: ocrModel.value,
       ocrType: ocrType.value,
       ocrPromptTemplate: ocrPromptTemplate.value,
+      enableOcrDedupe: enableOcrDedupe.checked,
       skipTranslation: skipTranslation.checked,
       translateModel: translateModel.value,
       translateType: translateType.value,
@@ -217,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ocrModel.value = cfg.ocrModel;
     ocrType.value = cfg.ocrType;
     ocrPromptTemplate.value = cfg.ocrPromptTemplate;
+    enableOcrDedupe.checked = cfg.enableOcrDedupe;
     skipTranslation.checked = cfg.skipTranslation;
 
     translateModel.innerHTML = `<option value="${cfg.translateModel}">${cfg.translateModel}</option>`;
@@ -270,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ocrModel: ocrModel.value,
       ocrType: ocrType.value,
       ocrPromptTemplate: ocrPromptTemplate.value,
+      enableOcrDedupe: enableOcrDedupe.checked,
       skipTranslation: skipTranslation.checked,
       translateModel: translateModel.value,
       translateType: translateType.value,
