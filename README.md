@@ -47,6 +47,30 @@ flowchart TD
 
 ## Quick start
 
+### Docker compose (alternative to steps 1–3)
+
+Requires [Docker](https://docs.docker.com/get-docker/) with Compose.
+
+```bash
+docker compose up -d --build
+```
+
+This starts Ollama (`localhost:11434`) and the GLM-OCR layout service (`localhost:5002`) using the official `ollama/ollama` image. Models are pulled automatically:
+
+- `glm-ocr:latest` — OCR (Z.ai [GLM-OCR](https://huggingface.co/zai-org/GLM-OCR)))
+- `kaelri/hy-mt2:1.8b` — translation (Tencent [Hy-MT2-1.8B](https://huggingface.co/tencent/Hy-MT2-1.8B))
+
+Verify:
+
+```bash
+curl http://localhost:5002/health
+curl http://localhost:11434/api/tags
+```
+
+The extension defaults (`http://localhost:11434/`, layout on port `5002`) work without changes. The first layout OCR request may download the Hugging Face layout model into the `glm_ocr_models` Docker volume.
+
+---
+
 ### 1. Pull the OCR model
 
 ```bash
@@ -104,7 +128,7 @@ Quick checks:
 ```bash
 npm --prefix ./extension run test:unit
 npm --prefix ./ollama run test:negative
-pytest glm-ocr/tests/test_service_negative.py -v
+pytest glm-ocr
 ```
 
 ## Documentation
