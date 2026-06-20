@@ -88,6 +88,9 @@ export function renderOverlay(boxes: LayoutOverlayBox[] = []) {
   const imageRect = resultImage.getBoundingClientRect();
   if (!imageRect.width || !imageRect.height) return;
 
+  resultImageStage.style.width = `${imageRect.width}px`;
+  resultImageStage.style.height = `${imageRect.height}px`;
+
   const maxSourceX = absoluteBoxes.reduce((max, box) => Math.max(max, box.x + box.width), 0);
   const maxSourceY = absoluteBoxes.reduce((max, box) => Math.max(max, box.y + box.height), 0);
   const sourceWidth = maxSourceX > resultImage.naturalWidth * 1.05 ? maxSourceX : resultImage.naturalWidth;
@@ -135,12 +138,19 @@ let originalCollapsed = readOriginalCollapsedPreference();
 let imageVisible = false;
 let latestImageData = '';
 
+function scheduleOverlayRerender(): void {
+  if (!currentOverlayBoxes.length) return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => renderOverlay(currentOverlayBoxes));
+  });
+}
+
 function setImagePanelMaximized(maximized: boolean): void {
   imagePanelMaximized = maximized && imageVisible;
   resultImagePanel.classList.toggle('is-maximized', imagePanelMaximized);
   root.classList.toggle('image-focus-mode', imagePanelMaximized);
   if (currentOverlayBoxes.length) {
-    requestAnimationFrame(() => renderOverlay(currentOverlayBoxes));
+    scheduleOverlayRerender();
   }
 }
 
@@ -191,7 +201,7 @@ function setImageVisible(visible: boolean): void {
   }
   updateImageToggleButtonState();
   if (imageVisible && currentOverlayBoxes.length) {
-    requestAnimationFrame(() => renderOverlay(currentOverlayBoxes));
+    scheduleOverlayRerender();
   }
 }
 
@@ -311,6 +321,15 @@ window.addEventListener('resize', () => {
     renderOverlay(currentOverlayBoxes);
   }
 });
+
+if (typeof ResizeObserver !== 'undefined') {
+  const imageResizeObserver = new ResizeObserver(() => {
+    if (imageVisible && currentOverlayBoxes.length) {
+      renderOverlay(currentOverlayBoxes);
+    }
+  });
+  imageResizeObserver.observe(resultImage);
+}
 
 
 function loadAndRenderLatestResult(): void {
