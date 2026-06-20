@@ -1,6 +1,9 @@
 install-extension:
 	npm --prefix ./extension install
 
+install-ollama:
+	npm --prefix ./ollama install
+
 build-extension:
 	npm --prefix ./extension run build:extension
 
@@ -10,7 +13,7 @@ test-extension:
 test-e2e:
 	npm --prefix ./extension run test:e2e:runtime
 
-test-ollama:
+test-ollama: install-ollama
 	npm --prefix ./ollama test
 
 test-glm-ocr:
