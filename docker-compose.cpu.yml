@@ -7,7 +7,9 @@ services:
       OLLAMA_HOST: "0.0.0.0:11434"
       OLLAMA_ORIGINS: "*"
     volumes:
+      # Replace with the line below to use host's Ollama cache
       - ollama_data:/root/.ollama
+      # - ${HOME}/.ollama:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 10s
