@@ -22,7 +22,7 @@ test.describe('endpoint mode helper', () => {
     }
   });
 
-  test('uses real endpoints when probes are healthy in auto mode', async () => {
+  test('registers mock handlers when provided even if endpoint probes are healthy in auto mode', async () => {
     delete process.env.VISIBABEL_ENDPOINT_MODE;
     delete process.env.VISIBABEL_FAIL_ON_FALLBACK;
 
@@ -39,7 +39,7 @@ test.describe('endpoint mode helper', () => {
       mockCalled += 1;
     });
 
-    expect(mockCalled).toBe(0);
+    expect(mockCalled).toBe(1);
     expect(fetchCalls.some((url) => url.endsWith('/api/tags'))).toBe(true);
     expect(fetchCalls.some((url) => url.endsWith('/health'))).toBe(true);
     expect(testContext.annotations.some((entry) => entry.type === 'warning')).toBe(false);
