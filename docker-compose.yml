@@ -42,6 +42,8 @@ services:
     build: ./glm-ocr
     ports:
       - "5002:5002"
+    environment:
+      GLMOCR_OLLAMA_ENDPOINT: "http://ollama:11434"
     volumes:
       - glm_ocr_models:/app/models
     extra_hosts:

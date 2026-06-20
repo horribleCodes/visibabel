@@ -91,6 +91,8 @@ Idle eviction defaults to 15 minutes. You can override it with environment varia
 
 If both are unset, the default is `900` seconds.
 
+When running in Docker Compose, set `GLMOCR_OLLAMA_ENDPOINT` (for example `http://ollama:11434`) so loopback client endpoints such as `http://localhost:11434/` resolve to the Ollama service on the Compose network.
+
 ### Layout model download behavior
 
 The service resolves `pipeline.layout.model_dir` with a local-first strategy so Hugging Face downloads are not repeated on every run.
