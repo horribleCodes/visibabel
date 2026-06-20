@@ -57,6 +57,6 @@ Integration tests require a running Ollama instance with `glm-ocr:latest` availa
 ## Environment variables
 
 - `OLLAMA_ENDPOINT` (default: `http://localhost:11434`)
-- `OLLAMA_MODEL` (default: `glm-ocr`)
+- `OLLAMA_MODEL` (default: `glm-ocr:latest`)
 - `OLLAMA_TIMEOUT_MS` (default: `60000`)
 - `RUN_GENERATE_TEST` (`1` to force `/api/generate` test)

@@ -22,6 +22,7 @@ export interface ExtensionConfig {
   enableLayoutInference: boolean;
   enableAutoPipeline: boolean;
   skipTranslation: boolean;
+  enableOcrDedupe: boolean;
   layoutChunkStrategy?: LayoutChunkStrategy;
   layoutMaxChunkSize?: number;
   layoutDebugRawPayload?: boolean;
@@ -34,9 +35,9 @@ export const defaultConfig: ExtensionConfig = {
   glmModel: 'glm-ocr:latest',
   ocrModel: 'glm-ocr:latest',
   ocrType: 'completion',
-  ocrPromptTemplate: 'Extract all visible text from the image. Preserve reading order and line breaks. Return only extracted text.',
+  ocrPromptTemplate: 'Text Recognition:',
   translateModel: 'kaelri/hy-mt2:1.8b',
-  translateType: 'chat_fallback',
+  translateType: 'completion',
   translatePromptTemplate: 'Translate the following text to {target_language}. Preserve line breaks. Return only translated text.\n\n{ocr_text}',
   targetLanguage: 'English',
   timeoutMs: 60000,
@@ -49,6 +50,7 @@ export const defaultConfig: ExtensionConfig = {
   enableLayoutInference: true,
   enableAutoPipeline: true,
   skipTranslation: false,
+  enableOcrDedupe: true,
   layoutChunkStrategy: 'none',
   layoutMaxChunkSize: 1200,
   layoutDebugRawPayload: false,
@@ -78,6 +80,7 @@ export function normalizeConfig(rawConfig: Partial<ExtensionConfig>): ExtensionC
   cfg.enableLayoutInference = cfg.enableLayoutInference !== false;
   cfg.enableAutoPipeline = cfg.enableAutoPipeline !== false;
   cfg.skipTranslation = cfg.skipTranslation === true;
+  cfg.enableOcrDedupe = cfg.enableOcrDedupe !== false;
   cfg.layoutChunkStrategy = cfg.layoutChunkStrategy || defaultConfig.layoutChunkStrategy;
   cfg.layoutMaxChunkSize = Math.max(100, Number(cfg.layoutMaxChunkSize) || defaultConfig.layoutMaxChunkSize || 1200);
   cfg.layoutDebugRawPayload = !!cfg.layoutDebugRawPayload;
