@@ -33,7 +33,7 @@ export const defaultConfig: ExtensionConfig = {
   layoutServiceUrl: '',
   glmModel: 'glm-ocr:latest',
   ocrModel: 'glm-ocr:latest',
-  ocrType: 'chat_fallback',
+  ocrType: 'completion',
   ocrPromptTemplate: 'Extract all visible text from the image. Preserve reading order and line breaks. Return only extracted text.',
   translateModel: 'kaelri/hy-mt2:1.8b',
   translateType: 'chat_fallback',
