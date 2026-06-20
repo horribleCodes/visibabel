@@ -51,8 +51,16 @@ flowchart TD
 
 Requires [Docker](https://docs.docker.com/get-docker/) with Compose.
 
+CPU (default):
+
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.cpu.yml up -d --build
+```
+
+GPU (NVIDIA):
+
+```bash
+docker compose -f docker-compose.gpu.yml up -d --build
 ```
 
 This starts Ollama (`localhost:11434`) and the GLM-OCR layout service (`localhost:5002`) using the official `ollama/ollama` image. Models are pulled automatically:
@@ -67,7 +75,7 @@ curl http://localhost:5002/health
 curl http://localhost:11434/api/tags
 ```
 
-The extension defaults (`http://localhost:11434/`, layout on port `5002`) work without changes. The first layout OCR request may download the Hugging Face layout model into the `glm_ocr_models` Docker volume.
+The extension defaults (`http://localhost:11434/`, layout on port `5002`) work without changes. The glm-ocr container reaches Ollama via Docker service DNS using `GLMOCR_OLLAMA_ENDPOINT=http://ollama:11434` (set in `docker-compose.cpu.yml` / `docker-compose.gpu.yml`). The first layout OCR request may download the Hugging Face layout model into the `glm_ocr_models` Docker volume.
 
 ---
 
