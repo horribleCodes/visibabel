@@ -8,7 +8,7 @@ export type EndpointMode = 'auto' | 'real' | 'mock';
 
 declare const process: any;
 const OLLAMA_URL = (typeof process !== 'undefined' && process.env.OLLAMA_URL) || 'http://localhost:11434';
-const LAYOUT_URL = (typeof process !== 'undefined' && process.env.LAYOUT_URL) || 'http://localhost:8000';
+const LAYOUT_URL = (typeof process !== 'undefined' && process.env.LAYOUT_URL) || 'http://localhost:5002';
 const ENDPOINT_TIMEOUT = (typeof process !== 'undefined' && process.env.VISIBABEL_ENDPOINT_TIMEOUT_MS) ? +process.env.VISIBABEL_ENDPOINT_TIMEOUT_MS : 2000;
 
 function getEndpointMode(): EndpointMode {
@@ -61,10 +61,14 @@ export async function setupEndpointMode(testContext: any, required: Endpoint[], 
   else if (mode === 'real') useMock = false;
   else if (mode === 'auto') useMock = offline.length > 0;
 
+  // Register Playwright interceptors whenever the test supplies handlers so local
+  // docker services on localhost do not bypass mocked E2E routes.
+  mockHandlers();
+
   if (useMock) {
-    mockHandlers();
     const title = typeof testContext.title === 'function' ? testContext.title() : testContext.title;
-    const msg = `[endpoint-fallback] ${title} using mock for: ${offline.join(', ')} (health probe failed)`;
+    const offlineLabel = offline.length > 0 ? offline.join(', ') : 'forced mock mode';
+    const msg = `[endpoint-fallback] ${title} using mock for: ${offlineLabel}${offline.length > 0 ? ' (health probe failed)' : ''}`;
     const annotations = Array.isArray(testContext?.annotations)
       ? testContext.annotations
       : Array.isArray(testContext?.info?.annotations)
