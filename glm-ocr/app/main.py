@@ -374,6 +374,25 @@ def extract_ocr_text(
     return "\n".join(text_parts).strip()
 
 
+LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+
+
+def read_internal_ollama_endpoint() -> tuple[str, int] | None:
+    raw = os.getenv("GLMOCR_OLLAMA_ENDPOINT", "").strip()
+    if not raw:
+        return None
+
+    try:
+        parsed = urlparse(raw)
+        host = parsed.hostname
+        if not host:
+            return None
+        port = parsed.port or 11434
+        return host, int(port)
+    except Exception:
+        return None
+
+
 def read_wsl_host_ip() -> str | None:
     """Read the Windows host-side IP from WSL resolver config when available."""
     if os.name != "posix":
@@ -419,10 +438,16 @@ def build_ollama_candidates(endpoint: str) -> list[tuple[str, int]]:
         if entry not in candidates:
             candidates.append(entry)
 
+    if host in LOOPBACK_HOSTS:
+        internal = read_internal_ollama_endpoint()
+        if internal:
+            add_candidate(*internal)
+
     add_candidate(host, port)
 
-    if host in {"localhost", "::1"}:
-        add_candidate("localhost", port)
+    if host in LOOPBACK_HOSTS:
+        if host != "localhost":
+            add_candidate("localhost", port)
         add_candidate("host.docker.internal", port)
 
         wsl_host = read_wsl_host_ip()

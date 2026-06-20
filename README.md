@@ -67,7 +67,7 @@ curl http://localhost:5002/health
 curl http://localhost:11434/api/tags
 ```
 
-The extension defaults (`http://localhost:11434/`, layout on port `5002`) work without changes. The first layout OCR request may download the Hugging Face layout model into the `glm_ocr_models` Docker volume.
+The extension defaults (`http://localhost:11434/`, layout on port `5002`) work without changes. The glm-ocr container reaches Ollama via Docker service DNS using `GLMOCR_OLLAMA_ENDPOINT=http://ollama:11434` (set in `docker-compose.yml`). The first layout OCR request may download the Hugging Face layout model into the `glm_ocr_models` Docker volume.
 
 ---
 
