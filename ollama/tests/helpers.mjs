@@ -15,9 +15,6 @@ export const EXTENSION_OCR_PROMPT = 'Text Recognition:';
 /** Same Ollama options the extension sends for OCR (ollama-options.ts). */
 export const EXTENSION_OCR_OPTIONS = {
   temperature: 0,
-  top_k: 1,
-  top_p: 0.00001,
-  repeat_penalty: 1.1,
   num_predict: 8192,
   stop: ['<|endoftext|>', '<|user|>'],
 };

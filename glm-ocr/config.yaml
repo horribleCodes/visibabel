@@ -12,9 +12,6 @@ pipeline:
   page_loader:
     max_tokens: 8192
     temperature: 0.0
-    top_k: 1
-    top_p: 0.00001
-    repetition_penalty: 1.1
     task_prompt_mapping:
       text: "Text Recognition:"
       table: "Table Recognition:"
