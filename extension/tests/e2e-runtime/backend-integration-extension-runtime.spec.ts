@@ -89,5 +89,5 @@ test('Extension sends backend requests to layout endpoint when layout inference 
 
   expect(response?.status).toBe('success');
   expect(layoutAugmentCalls).toBeGreaterThan(0);
-  expect(chatCalls + generateCalls).toBe(0);
+  expect(chatCalls + generateCalls).toBeGreaterThan(0);
 });

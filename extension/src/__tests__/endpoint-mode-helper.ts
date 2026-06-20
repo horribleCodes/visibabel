@@ -9,7 +9,7 @@ export type EndpointHealthMap = Record<Endpoint, boolean>;
 export type EndpointMode = 'auto' | 'real' | 'mock';
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const LAYOUT_URL = process.env.LAYOUT_URL || 'http://localhost:8000';
+const LAYOUT_URL = process.env.LAYOUT_URL || 'http://localhost:5002';
 const ENDPOINT_TIMEOUT = +(process.env.VISIBABEL_ENDPOINT_TIMEOUT_MS || 2000);
 const MODE: EndpointMode = (process.env.VISIBABEL_ENDPOINT_MODE as EndpointMode) || 'auto';
 const FAIL_ON_FALLBACK = process.env.VISIBABEL_FAIL_ON_FALLBACK === 'true';

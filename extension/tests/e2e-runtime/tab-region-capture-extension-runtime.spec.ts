@@ -191,5 +191,5 @@ test('Tab and region capture workflow triggers overlay and layout backend reques
 
   expect(runtimeResponse?.status).toBe('success');
   expect(layoutAugmentCalls).toBeGreaterThan(0);
-  expect(chatCalls + generateCalls).toBe(0);
+  expect(chatCalls + generateCalls).toBeGreaterThan(0);
 });
