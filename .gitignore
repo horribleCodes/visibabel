@@ -29,6 +29,7 @@ dist-ssr
 
 # Local configurations
 .vscode/
+docker-compose.yml
 
 # Python artifacts (glm-ocr)
 __pycache__/
