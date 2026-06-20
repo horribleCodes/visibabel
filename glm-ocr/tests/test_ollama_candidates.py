@@ -1,12 +1,11 @@
 import sys
 from pathlib import Path
+from app import main as service_main
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-
-from app import main as service_main
 
 
 def test_localhost_without_env_uses_loopback_fallbacks(monkeypatch):
