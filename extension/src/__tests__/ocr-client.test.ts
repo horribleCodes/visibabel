@@ -22,7 +22,7 @@ describe('OCR Client', () => {
                 ocrModel: 'glm-ocr:latest',
                 ocrType: 'chat_fallback',
                 ocrPromptTemplate: 'Extract text',
-                translateModel: 'qwen2.5:7b',
+                translateModel: 'kaelri/hy-mt2:1.8b',
                 translateType: 'chat_fallback',
                 translatePromptTemplate: 'Translate to {target_language}: {ocr_text}',
                 targetLanguage: 'English',

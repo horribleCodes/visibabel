@@ -139,7 +139,7 @@ Translation request example:
 
 ```json
 {
-  "model": "qwen2.5:7b",
+  "model": "kaelri/hy-mt2:1.8b",
   "stream": false,
   "options": { "temperature": 0 },
   "messages": [

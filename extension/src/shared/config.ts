@@ -35,7 +35,7 @@ export const defaultConfig: ExtensionConfig = {
   ocrModel: 'glm-ocr:latest',
   ocrType: 'chat_fallback',
   ocrPromptTemplate: 'Extract all visible text from the image. Preserve reading order and line breaks. Return only extracted text.',
-  translateModel: 'qwen2.5:7b',
+  translateModel: 'kaelri/hy-mt2:1.8b',
   translateType: 'chat_fallback',
   translatePromptTemplate: 'Translate the following text to {target_language}. Preserve line breaks. Return only translated text.\n\n{ocr_text}',
   targetLanguage: 'English',

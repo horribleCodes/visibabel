@@ -65,7 +65,7 @@ describe('runtime-api debug action overrides', () => {
   });
 
   test('passes configOverride to LOAD_RUNTIME_MODELS', async () => {
-    const configOverride = { translateModel: 'qwen2.5:7b' };
+    const configOverride = { translateModel: 'kaelri/hy-mt2:1.8b' };
     await loadRuntimeModels(configOverride as any);
     expect(sendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({

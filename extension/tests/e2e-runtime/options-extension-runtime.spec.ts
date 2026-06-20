@@ -23,7 +23,7 @@ test('options page loads in real extension runtime and shows defaults', async ({
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ models: [{ name: 'glm-ocr:latest' }, { name: 'qwen2.5:7b' }] }),
+        body: JSON.stringify({ models: [{ name: 'glm-ocr:latest' }, { name: 'kaelri/hy-mt2:1.8b' }] }),
       });
     });
     harness.context.route('**/api/ps', async (route) => {
@@ -48,7 +48,7 @@ test('options page loads in real extension runtime and shows defaults', async ({
       ollamaServiceUrl: 'http://localhost:11434/',
       glmModel: 'glm-ocr:latest',
       ocrModel: 'glm-ocr:latest',
-      translateModel: 'qwen2.5:7b',
+      translateModel: 'kaelri/hy-mt2:1.8b',
       targetLanguage: 'English',
       enableLayoutInference: true,
     });
