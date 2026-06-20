@@ -50,6 +50,14 @@ services:
       ollama:
         condition: service_healthy
     restart: unless-stopped
+    # Uncomment for NVIDIA GPU on Linux:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
 
 volumes:
   ollama_data:

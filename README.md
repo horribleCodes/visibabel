@@ -71,10 +71,11 @@ The extension defaults (`http://localhost:11434/`, layout on port `5002`) work w
 
 ---
 
-### 1. Pull the OCR model
+### 1. Pull the OCR & translation models
 
 ```bash
 ollama pull glm-ocr:latest
+ollama pull kaelri/hy-mt2:1.8b
 ```
 
 ### 2. Start Ollama
