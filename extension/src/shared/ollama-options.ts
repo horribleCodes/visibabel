@@ -1,8 +1,8 @@
-/** Model-native stop sequences for glm-ocr OCR requests (Ollama `options.stop`). */
-export const GLM_OCR_STOP_SEQUENCES = ['<|endoftext|>', '<|user|>'] as const;
-
 /** Optional fence stop when model wraps OCR output in markdown code blocks. */
-export const GLM_OCR_FENCE_STOP = '```' as const;
+export const GLM_OCR_FENCE_STOP = '```markdown' as const;
+
+/** Model-native stop sequences for glm-ocr OCR requests (Ollama `options.stop`). */
+export const GLM_OCR_STOP_SEQUENCES = ['<|endoftext|>', '<|user|>', GLM_OCR_FENCE_STOP] as const;
 
 export interface OcrOllamaOptions {
   temperature: number;

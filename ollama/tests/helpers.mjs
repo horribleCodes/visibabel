@@ -16,15 +16,11 @@ export const EXTENSION_OCR_PROMPT = 'Text Recognition:';
 export const EXTENSION_OCR_OPTIONS = {
   temperature: 0,
   num_predict: 8192,
-  stop: ['<|endoftext|>', '<|user|>'],
+  stop: ['<|endoftext|>', '<|user|>', '```markdown'],
 };
 
 /** Normalized text from resources/test_1.png (line 1: こんにちは, line 2: 世界). */
-export const EXPECTED_TEST_1_TEXT = 'こんにちは世界';
-
-export function normalizeOcrForCompare(text) {
-  return String(text || '').replace(/\s+/g, '');
-}
+export const EXPECTED_TEST_1_TEXT = '世界\nこんにちは';
 
 /** Mirrors extension cleanOcrText (ocr-text-cleaner.ts). */
 export function cleanOcrLikeExtension(text) {

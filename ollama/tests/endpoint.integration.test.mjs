@@ -11,7 +11,6 @@ import {
   EXTENSION_OCR_PROMPT,
   EXTENSION_OCR_OPTIONS,
   EXPECTED_TEST_1_TEXT,
-  normalizeOcrForCompare,
   cleanOcrLikeExtension,
   describeOcrArtifacts,
 } from './helpers.mjs';
@@ -89,13 +88,12 @@ test('Ollama OCR extracts test_1.png text without trailing dash artifacts', asyn
   assert.ok(raw.length > 0, 'Should return OCR text');
 
   const cleaned = cleanOcrLikeExtension(raw);
-  const normalized = normalizeOcrForCompare(cleaned);
   const artifacts = describeOcrArtifacts(raw);
 
   assert.equal(
-    normalized,
+    cleaned,
     EXPECTED_TEST_1_TEXT,
-    `Expected normalized OCR "${EXPECTED_TEST_1_TEXT}" from test_1.png; got ${JSON.stringify(normalized)}. ` +
+    `Expected normalized OCR "${EXPECTED_TEST_1_TEXT}" from test_1.png; got ${JSON.stringify(cleaned)}. ` +
       `Extension cleaner left ${cleaned.length} chars (raw ${artifacts.rawLength}, eval_count ${data.eval_count ?? 'n/a'}, ` +
       `dash runs ${artifacts.dashRunCount}, fence runs ${artifacts.fenceRunCount}). ` +
       `Raw preview: ${JSON.stringify(raw.slice(0, 80))}…${JSON.stringify(raw.slice(-80))}`,
