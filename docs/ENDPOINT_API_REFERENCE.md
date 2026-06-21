@@ -114,21 +114,21 @@ Used by OCR and translation steps when mode is `chat` or `chat_fallback`.
 - Path: `/api/chat`
 - Headers: `Content-Type: application/json`
 
-OCR request example:
+OCR request example (glm-ocr uses task prompt only; no system message):
 
 ```json
 {
   "model": "glm-ocr:latest",
   "stream": false,
-  "options": { "temperature": 0 },
+  "options": {
+    "temperature": 0,
+    "num_predict": 8192,
+    "stop": ["<|endoftext|>", "<|user|>"]
+  },
   "messages": [
     {
-      "role": "system",
-      "content": "You are an OCR engine. Extract text faithfully with preserved reading order and line breaks."
-    },
-    {
       "role": "user",
-      "content": "<ocr prompt>",
+      "content": "Text Recognition:",
       "images": ["<base64-image>"]
     }
   ]
@@ -181,15 +181,18 @@ Used for OCR/translation fallback and explicit completion mode, and for model lo
 - Path: `/api/generate`
 - Headers: `Content-Type: application/json`
 
-OCR/translation request example:
+OCR request example (default completion mode):
 
 ```json
 {
   "model": "glm-ocr:latest",
-  "prompt": "<prompt>",
+  "prompt": "Text Recognition:",
   "images": ["<base64-image>"],
   "stream": false,
-  "options": { "temperature": 0 }
+  "options": {
+    "num_predict": 8192,
+    "stop": ["<|endoftext|>", "<|user|>"]
+  }
 }
 ```
 

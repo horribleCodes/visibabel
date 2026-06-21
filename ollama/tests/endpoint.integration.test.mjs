@@ -4,7 +4,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fetch from 'node-fetch';
-import { getEndpoint, getModel, loadTestImage } from './helpers.mjs';
+import {
+  getEndpoint,
+  getModel,
+  loadTestImage,
+  EXTENSION_OCR_PROMPT,
+  EXTENSION_OCR_OPTIONS,
+  EXPECTED_TEST_1_TEXT,
+  cleanOcrLikeExtension,
+  describeOcrArtifacts,
+} from './helpers.mjs';
 
 const endpoint = getEndpoint();
 const model = getModel();
@@ -16,7 +25,7 @@ async function postJson(url, body, opts = {}) {
     headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
     body: JSON.stringify(body),
     ...opts,
-  });loadTestImage
+  });
 }
 
 test('Ollama endpoint is reachable', async () => {
@@ -62,6 +71,33 @@ test('Ollama OCR endpoint returns text', async () => {
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.ok(data.response && typeof data.response === 'string' && data.response.length > 0, 'Should return OCR text');
+});
+
+test('Ollama OCR extracts test_1.png text without trailing dash artifacts', async () => {
+  const imageBase64 = await loadTestImage();
+  const res = await postJson(`${endpoint}/api/generate`, {
+    model,
+    prompt: EXTENSION_OCR_PROMPT,
+    stream: false,
+    images: [imageBase64],
+    options: EXTENSION_OCR_OPTIONS,
+  });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  const raw = typeof data.response === 'string' ? data.response : '';
+  assert.ok(raw.length > 0, 'Should return OCR text');
+
+  const cleaned = cleanOcrLikeExtension(raw);
+  const artifacts = describeOcrArtifacts(raw);
+
+  assert.equal(
+    cleaned,
+    EXPECTED_TEST_1_TEXT,
+    `Expected normalized OCR "${EXPECTED_TEST_1_TEXT}" from test_1.png; got ${JSON.stringify(cleaned)}. ` +
+      `Extension cleaner left ${cleaned.length} chars (raw ${artifacts.rawLength}, eval_count ${data.eval_count ?? 'n/a'}, ` +
+      `dash runs ${artifacts.dashRunCount}, fence runs ${artifacts.fenceRunCount}). ` +
+      `Raw preview: ${JSON.stringify(raw.slice(0, 80))}…${JSON.stringify(raw.slice(-80))}`,
+  );
 });
 
 test('Ollama translation endpoint returns translation', async () => {
