@@ -8,6 +8,7 @@ import { setBadge } from './badge-manager.js';
 import { shouldUseLayoutAugment, getParserConfig } from '../shared/layout-seam.js';
 import { fetchLayoutAugment } from '../shared/layout-client.js';
 import { parseLayoutAugment } from '../shared/layout-parser.js';
+import { prepareImageDataForEndpoints } from '../shared/image-source.js';
 
 function broadcastResultUpdated(debug: boolean): void {
   try {
@@ -40,6 +41,7 @@ function attachSourceImage(result: any, imageData: string): any {
 export async function runOcrAndPersist(imageData: string, configOverride?: Record<string, unknown>): Promise<any> {
   setBadge('ocr');
   let debug = false;
+  let storedImageData = imageData;
   try {
     // Prefer configOverride.debug if present, else fetch config
     let config;
@@ -51,15 +53,19 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
     }
     config = await getConfig();
     if (configOverride) config = Object.assign({}, config, configOverride);
+    const endpointImageData = await prepareImageDataForEndpoints(imageData);
+    storedImageData = config.storeConvertedWebpInResults ? endpointImageData : imageData;
     if (debug) logDebug('Starting OCR/translation run', { imageData, configOverride });
 
     let runOutput;
     if (shouldUseLayoutAugment(config)) {
       if (debug) logDebug('Using layout-augmented OCR flow');
-      const base64Image = imageData.includes(';base64,') ? imageData.split(';base64,')[1] : imageData;
+      const base64Image = endpointImageData.includes(';base64,')
+        ? endpointImageData.split(';base64,')[1]
+        : endpointImageData;
       const parserConfig = getParserConfig(config);
       const [ocrOutput, layoutRaw] = await Promise.all([
-        runOcrTranslation(imageData, config),
+        runOcrTranslation(endpointImageData, config),
         fetchLayoutAugment(base64Image, config, parserConfig),
       ]);
       const parsed = parseLayoutAugment(layoutRaw, parserConfig);
@@ -79,13 +85,13 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
         },
       };
     } else {
-      runOutput = await runOcrTranslation(imageData, configOverride);
+      runOutput = await runOcrTranslation(endpointImageData, configOverride);
     }
 
     if (debug) logDebug('OCR/translation run output', runOutput);
     const hasWrappedOutput = runOutput && typeof runOutput === 'object' && Object.prototype.hasOwnProperty.call(runOutput, 'result');
     const rawResult = hasWrappedOutput ? runOutput.result : runOutput;
-    const result = attachSourceImage(rawResult, imageData);
+    const result = attachSourceImage(rawResult, storedImageData);
     const runId = hasWrappedOutput && runOutput.runId ? String(runOutput.runId) : undefined;
 
     await saveLastResult(result);
@@ -98,7 +104,7 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
     return { result, runId };
   } catch (err) {
     if (err instanceof BadResponseError && err.result) {
-      await saveLastResult(attachSourceImage(err.result, imageData));
+      await saveLastResult(attachSourceImage(err.result, storedImageData));
       broadcastResultUpdated(debug);
     }
     setBadge('error');

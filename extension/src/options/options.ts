@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const debugCheckbox = requiredEl<HTMLInputElement>('debug');
   const enableNotifications = requiredEl<HTMLInputElement>('enableNotifications');
   const autoOpenPopupOnComplete = requiredEl<HTMLInputElement>('autoOpenPopupOnComplete');
+  const storeConvertedWebpInResults = requiredEl<HTMLInputElement>('storeConvertedWebpInResults');
   const autoOcrWhitelist = requiredEl<HTMLTextAreaElement>('autoOcrWhitelist');
 
   const ocrModel = requiredEl<HTMLSelectElement>('ocrModel');
@@ -119,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
       debug: debugCheckbox.checked,
       enableNotifications: enableNotifications.checked,
       autoOpenPopupOnComplete: autoOpenPopupOnComplete.checked,
+      storeConvertedWebpInResults: storeConvertedWebpInResults.checked,
       autoOcrWhitelist: autoOcrWhitelist.value,
       ocrModel: ocrModel.value,
       ocrType: ocrType.value,
@@ -213,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     debugCheckbox.checked = cfg.debug;
     enableNotifications.checked = cfg.enableNotifications;
     autoOpenPopupOnComplete.checked = cfg.autoOpenPopupOnComplete;
+    storeConvertedWebpInResults.checked = cfg.storeConvertedWebpInResults;
     autoOcrWhitelist.value = cfg.autoOcrWhitelist;
 
     ocrModel.innerHTML = `<option value="${cfg.ocrModel}">${cfg.ocrModel}</option>`;
@@ -269,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
       debug: debugCheckbox.checked,
       enableNotifications: enableNotifications.checked,
       autoOpenPopupOnComplete: autoOpenPopupOnComplete.checked,
+      storeConvertedWebpInResults: storeConvertedWebpInResults.checked,
       autoOcrWhitelist: autoOcrWhitelist.value,
       ocrModel: ocrModel.value,
       ocrType: ocrType.value,
