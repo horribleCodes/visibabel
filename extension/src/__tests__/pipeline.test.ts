@@ -7,6 +7,12 @@ import { setBadge } from '../background/badge-manager.js';
 import { shouldUseLayoutAugment, getParserConfig } from '../shared/layout-seam.js';
 import { fetchLayoutAugment } from '../shared/layout-client.js';
 import { parseLayoutAugment } from '../shared/layout-parser.js';
+import { getConfig } from '../shared/config.js';
+import { prepareImageDataForEndpoints } from '../shared/image-source.js';
+
+jest.mock('../shared/image-source.js', () => ({
+  prepareImageDataForEndpoints: jest.fn(async (imageData: string) => imageData),
+}));
 
 jest.mock('../shared/ocr-client.js', () => ({
   runOcrTranslation: jest.fn(),
@@ -63,6 +69,8 @@ describe('Pipeline RESULT_UPDATED broadcast', () => {
   const mockedGetParserConfig = getParserConfig as jest.MockedFunction<typeof getParserConfig>;
   const mockedFetchLayoutAugment = fetchLayoutAugment as jest.MockedFunction<typeof fetchLayoutAugment>;
   const mockedParseLayoutAugment = parseLayoutAugment as jest.MockedFunction<typeof parseLayoutAugment>;
+  const mockedGetConfig = getConfig as jest.MockedFunction<typeof getConfig>;
+  const mockedPrepareImageDataForEndpoints = prepareImageDataForEndpoints as jest.MockedFunction<typeof prepareImageDataForEndpoints>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -198,6 +206,68 @@ describe('Pipeline RESULT_UPDATED broadcast', () => {
             overlayBoxes: [{ id: 'r1' }],
           }),
         }),
+      }),
+    );
+  });
+
+  it('sends converted image data to OCR while keeping original WebP in results by default', async () => {
+    const originalWebp = 'data:image/webp;base64,WEBPORIGINAL';
+    const convertedJpeg = 'data:image/jpeg;base64,JPEGFORAPI';
+
+    mockedGetConfig.mockResolvedValue({
+      debug: false,
+      storeConvertedWebpInResults: false,
+    } as any);
+    mockedPrepareImageDataForEndpoints.mockResolvedValueOnce(convertedJpeg);
+    mockedRunOcrTranslation.mockResolvedValueOnce({
+      result: {
+        ocr_text: 'text',
+        translated_text: 'text',
+      },
+      config: {
+        autoOpenPopupOnComplete: false,
+      },
+    } as any);
+    mockedSaveLastResult.mockResolvedValueOnce(undefined as any);
+    mockedAutoOpenResultsIfEnabled.mockResolvedValueOnce(undefined as any);
+
+    await runOcrAndPersist(originalWebp, { debug: false });
+
+    expect(mockedPrepareImageDataForEndpoints).toHaveBeenCalledWith(originalWebp);
+    expect(mockedRunOcrTranslation).toHaveBeenCalledWith(convertedJpeg, expect.any(Object));
+    expect(mockedSaveLastResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_image_data: originalWebp,
+      }),
+    );
+  });
+
+  it('stores converted JPEG in results when storeConvertedWebpInResults is enabled', async () => {
+    const originalWebp = 'data:image/webp;base64,WEBPORIGINAL';
+    const convertedJpeg = 'data:image/jpeg;base64,JPEGFORAPI';
+
+    mockedGetConfig.mockResolvedValue({
+      debug: false,
+      storeConvertedWebpInResults: true,
+    } as any);
+    mockedPrepareImageDataForEndpoints.mockResolvedValueOnce(convertedJpeg);
+    mockedRunOcrTranslation.mockResolvedValueOnce({
+      result: {
+        ocr_text: 'text',
+        translated_text: 'text',
+      },
+      config: {
+        autoOpenPopupOnComplete: false,
+      },
+    } as any);
+    mockedSaveLastResult.mockResolvedValueOnce(undefined as any);
+    mockedAutoOpenResultsIfEnabled.mockResolvedValueOnce(undefined as any);
+
+    await runOcrAndPersist(originalWebp, { debug: false });
+
+    expect(mockedSaveLastResult).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_image_data: convertedJpeg,
       }),
     );
   });

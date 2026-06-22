@@ -23,6 +23,7 @@ export interface ExtensionConfig {
   enableAutoPipeline: boolean;
   skipTranslation: boolean;
   enableOcrDedupe: boolean;
+  storeConvertedWebpInResults: boolean;
   layoutChunkStrategy?: LayoutChunkStrategy;
   layoutMaxChunkSize?: number;
   layoutDebugRawPayload?: boolean;
@@ -51,6 +52,7 @@ export const defaultConfig: ExtensionConfig = {
   enableAutoPipeline: true,
   skipTranslation: false,
   enableOcrDedupe: true,
+  storeConvertedWebpInResults: false,
   layoutChunkStrategy: 'none',
   layoutMaxChunkSize: 1200,
   layoutDebugRawPayload: false,
@@ -81,6 +83,7 @@ export function normalizeConfig(rawConfig: Partial<ExtensionConfig>): ExtensionC
   cfg.enableAutoPipeline = cfg.enableAutoPipeline !== false;
   cfg.skipTranslation = cfg.skipTranslation === true;
   cfg.enableOcrDedupe = cfg.enableOcrDedupe !== false;
+  cfg.storeConvertedWebpInResults = cfg.storeConvertedWebpInResults === true;
   cfg.layoutChunkStrategy = cfg.layoutChunkStrategy || defaultConfig.layoutChunkStrategy;
   cfg.layoutMaxChunkSize = Math.max(100, Number(cfg.layoutMaxChunkSize) || defaultConfig.layoutMaxChunkSize || 1200);
   cfg.layoutDebugRawPayload = !!cfg.layoutDebugRawPayload;
