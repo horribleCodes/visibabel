@@ -11,7 +11,7 @@ test('Service worker is active and logs background events', async () => {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visibabel-sw-e2e-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    headless: false,
+    headless: true,
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,

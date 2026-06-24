@@ -16,7 +16,7 @@ test('menu loads in real extension runtime without missing internal resources', 
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visibabel-extension-e2e-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    headless: false,
+    headless: true,
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,

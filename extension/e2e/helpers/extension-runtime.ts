@@ -21,7 +21,7 @@ export async function launchRuntimeHarness(prefix: string): Promise<RuntimeHarne
 
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    headless: false,
+    headless: true,
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,

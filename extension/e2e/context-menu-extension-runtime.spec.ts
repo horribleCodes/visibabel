@@ -13,7 +13,7 @@ test('Context menu action appears and triggers workflow', async () => {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visibabel-contextmenu-e2e-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    headless: false,
+    headless: true,
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,
