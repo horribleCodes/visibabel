@@ -1,8 +1,9 @@
 import { normalizeConfig, defaultConfig } from '../config.js';
+import type { LayoutChunkStrategy } from '../layout-types.js';
 
 describe('normalizeConfig', () => {
   it('migrates and defaults layout config fields', () => {
-    const raw = { layoutChunkStrategy: 'one-group-per-request', layoutMaxChunkSize: 999, layoutDebugRawPayload: true };
+    const raw = { layoutChunkStrategy: 'one-group-per-request' as LayoutChunkStrategy, layoutMaxChunkSize: 999, layoutDebugRawPayload: true };
     const cfg = normalizeConfig(raw);
     expect(cfg.layoutChunkStrategy).toBe('one-group-per-request');
     expect(cfg.layoutMaxChunkSize).toBe(999);

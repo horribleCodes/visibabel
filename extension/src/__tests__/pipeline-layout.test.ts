@@ -1,6 +1,7 @@
 
 // TODO: Implement a chrome API mock for integration testing in Jest/node
 // Skipping this test for now due to chrome API dependency
+import { runOcrAndPersist } from '../background/pipeline';
 
 describe.skip('pipeline persistence shape', () => {
   it('persists layout overlay fields when layout is enabled', async () => {

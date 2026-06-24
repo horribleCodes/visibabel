@@ -1,4 +1,5 @@
 import { parseLayoutAugment } from '../layout-parser.js';
+import type { LayoutChunkStrategy } from '../layout-types.js';
 
 describe('parseLayoutAugment', () => {
   it('normalizes regions, groups, and overlayBoxes', () => {
@@ -10,7 +11,7 @@ describe('parseLayoutAugment', () => {
         { id: 'g1', regionIds: ['r1'], text: 'A', order: 0 },
       ],
     };
-    const parserConfig = { chunkStrategy: 'none' };
+    const parserConfig = { chunkStrategy: 'none' as LayoutChunkStrategy };
     const result = parseLayoutAugment(raw, parserConfig);
     expect(result.regions.length).toBe(1);
     expect(result.groups.length).toBe(1);
@@ -30,7 +31,7 @@ describe('parseLayoutAugment', () => {
         },
       ],
     };
-    const parserConfig = { chunkStrategy: 'none' };
+    const parserConfig = { chunkStrategy: 'none' as LayoutChunkStrategy };
     const result = parseLayoutAugment(raw, parserConfig);
 
     expect(result.regions).toHaveLength(1);

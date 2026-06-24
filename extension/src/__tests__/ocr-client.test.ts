@@ -1,10 +1,8 @@
 
 // Unit tests for OCR client logic
 // Framework: Jest
-import { BadResponseError, runOcrTranslation, NoTextDetectedError } from '../shared/ocr-client';
+import { runOcrTranslation, NoTextDetectedError } from '../shared/ocr-client';
 import { setupEndpointMode } from './endpoint-mode-helper';
-
-
 
 describe('OCR Client', () => {
   beforeEach(async () => {
@@ -20,10 +18,9 @@ describe('OCR Client', () => {
               config: {
                 ollamaServiceUrl: 'http://localhost:11434/',
                 ocrModel: 'glm-ocr:latest',
-                ocrType: 'chat_fallback',
-                ocrPromptTemplate: 'Extract text',
+                ocrType: 'generate',
                 translateModel: 'kaelri/hy-mt2:1.8b',
-                translateType: 'chat_fallback',
+                translateType: 'generate',
                 translatePromptTemplate: 'Translate to {target_language}: {ocr_text}',
                 targetLanguage: 'English',
                 timeoutMs: 2000,
@@ -50,19 +47,19 @@ describe('OCR Client', () => {
     delete (globalThis as any).chrome;
   });
 
-  it('should run OCR and translation via chat mode fallback defaults', async () => {
+  it('should run OCR and translation via completion mode defaults', async () => {
     const fetchMock = globalThis.fetch as jest.Mock;
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ message: { content: 'Bonjour' } }),
+        json: async () => ({ response: 'Bonjour' }),
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ message: { content: 'Hello' } }),
+        json: async () => ({ response: 'Hello' }),
       });
 
-    const output = await runOcrTranslation('data:image/png;base64,QUJD');
+    const output = await runOcrTranslation('data:image/png;base64,QUJD', { retryCount: 0 });
     expect(output.result).toEqual(
       expect.objectContaining({
         ocr_text: 'Bonjour',
@@ -71,18 +68,20 @@ describe('OCR Client', () => {
       })
     );
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:11434/api/chat');
-    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:11434/api/chat');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:11434/api/generate');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:11434/api/generate');
     const ocrBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
-    expect(ocrBody.options.stop).toEqual(['<|endoftext|>', '<|user|>']);
-    expect(ocrBody.messages.some((m: { role: string }) => m.role === 'system')).toBe(false);
+    expect(ocrBody.options.stop).toEqual(['<|endoftext|>', '<|user|>', '```markdown']);
+    expect(ocrBody.prompt).toBe('Text Recognition:');
+    const translateBody = JSON.parse(String(fetchMock.mock.calls[1][1]?.body));
+    expect(translateBody.prompt).toBe('Translate to English: Bonjour');
   });
 
   it('should skip translation when skipTranslation is enabled', async () => {
     const fetchMock = globalThis.fetch as jest.Mock;
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ message: { content: 'Already English' } }),
+      json: async () => ({ response: 'Already English' }),
     });
 
     const output = await runOcrTranslation('data:image/png;base64,QUJD', { skipTranslation: true });
@@ -94,6 +93,46 @@ describe('OCR Client', () => {
       })
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fallback to completion when chat fails', async () => {
+    const fetchMock = globalThis.fetch as jest.Mock;
+
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes('/api/chat')) {
+        return {
+          ok: false,
+          json: async () => ({ error: 'Chat failed' }),
+        };
+      }
+
+      if (url.includes('/api/generate')) {
+        return {
+          ok: true,
+          json: async () => ({ response: 'Hello world' }),
+        };
+      }
+
+      throw new Error(`Unexpected fetch to ${url}`);
+    });
+
+    const output = await runOcrTranslation('data:image/png;base64,QUJD', {
+      ocrType: 'chat_fallback',
+      skipTranslation: true,
+      retryCount: 0,
+    });
+
+    expect(output.result).toEqual(
+      expect.objectContaining({
+        ocr_text: 'Hello world',
+        skip_translation: true,
+      })
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:11434/api/chat');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://localhost:11434/api/generate');
+    const ocrBody = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(ocrBody.messages.some((m: { role: string }) => m.role === 'system')).toBe(false);
   });
 
   it('should throw NoTextDetectedError when OCR returns empty output', async () => {
@@ -108,11 +147,6 @@ describe('OCR Client', () => {
         json: async () => ({ response: '' }),
       });
 
-    await expect(runOcrTranslation('data:image/png;base64,QUJD')).rejects.toBeInstanceOf(NoTextDetectedError);
-  });
-
-  it.skip('should throw BadResponseError when OCR returns invalid sentinel text', async () => {
-    // SKIPPED: The cleaning logic now removes these patterns entirely, resulting in NoTextDetectedError instead.
-    // Reinstate this test if a new pattern is added that does not get fully removed by cleaning.
+    await expect(runOcrTranslation('data:image/png;base64,QUJD', {ocrType: 'completion'})).rejects.toBeInstanceOf(NoTextDetectedError);
   });
 });
