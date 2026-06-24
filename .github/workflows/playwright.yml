@@ -26,7 +26,7 @@ jobs:
         path: extension/node_modules
         key: ${{ runner.os }}-extension-${{ hashFiles('extension/package-lock.json') }}
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npm --prefix ./extension run test:e2e
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
