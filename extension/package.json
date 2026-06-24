@@ -6,22 +6,29 @@
   "scripts": {
     "build": "tsc --noEmit && npm run build:extension",
     "build:extension": "tsc -p tsconfig.emit.json",
+    "package": "npm run package:zip",
+    "package:zip": "zip -r ../extension.zip *",
     "verify:ts-ground-truth": "node scripts/check-ts-ground-truth.mjs",
     "verify:browser-esm-imports": "node scripts/check-browser-esm-imports.mjs",
     "verify:emit-sync": "npm run build:extension && npm run verify:ts-ground-truth && npm run verify:browser-esm-imports",
     "test": "npm run test:unit",
     "test:unit": "jest --config jest.config.cjs",
     "test:e2e": "npm run test:e2e:runtime",
-    "test:e2e:runtime": "npm run build:extension && playwright test -c ./playwright.runtime.config.ts"
+    "test:e2e:runtime": "npm run build:extension && playwright test -c ./playwright.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
-    "@types/chrome": "^0.1.43",
+    "@types/chrome": "^0.2.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.0.0",
+    "dotenv": "^17.4.2",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "node-fetch": "^3.3.2",
-    "ts-jest": "^29.0.0",
-    "typescript": "~6.0.2"
+    "node-fetch-commonjs": "^3.3.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "~6.0.3"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
   }
 }

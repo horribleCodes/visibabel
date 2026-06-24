@@ -6,3 +6,4 @@
 - [ ] keybind support
 - [ ] bundle OCR SDK server to module
 - [ ] vLLM support
+- [ ] define image elements per item in auto OCR whitelist

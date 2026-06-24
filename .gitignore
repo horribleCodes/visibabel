@@ -41,3 +41,10 @@ venv/
 
 # Test artifacts
 test-results/
+
+# Keys
+*.pem
+
+# Package
+*.zip
+*.crx

@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Visibabel",
-    "version": "0.1.0",
-    "description": "Capture images, OCR, and translate text using local Ollama GLM-OCR.",
+    "version": "0.1.1",
+    "description": "Capture images, OCR, and translate text using local Ollama AI models.",
     "permissions": [
         "storage",
         "activeTab",
@@ -12,7 +12,6 @@
         "notifications"
     ],
     "host_permissions": [
-        "http://localhost/*",
         "https://*/*",
         "http://*/*"
     ],
