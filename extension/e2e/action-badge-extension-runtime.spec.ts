@@ -22,33 +22,37 @@ async function setBadgeText(serviceWorker: any, text: string): Promise<void> {
 
 test('Action badge updates for OCR run success, error, and clear-on-results-open', async ({}, testInfo) => {
   const harness = await launchRuntimeHarness('visibabel-badge-e2e');
-  let chatCallCount = 0;
-  let layoutAugmentCallCount = 0;
+  let slowInference = false;
+  let failAugment = false;
 
   await setupEndpointMode(testInfo, ['ollama', 'layout'], () => {
-    harness.context.route('**/api/tags', async (route) => {
+    harness.context.route('**:11434/api/tags', async (route) => {
       await route.fulfill({
-        status: 503,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'offline for badge runtime test' }),
-      });
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'offline for badge runtime test' }),
+        });
     });
-    harness.context.route('**/api/chat', async (route) => {
-      chatCallCount += 1;
-      // Slow the first translate call so the test can observe in-flight badge state.
-      if (chatCallCount === 2) {
+    harness.context.route('**:11434/api/generate', async (route) => {
+      if (slowInference) {
         await new Promise((resolve) => setTimeout(resolve, 1200));
       }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ message: { content: 'Translated text from mocked endpoint' } }),
+        body: JSON.stringify({ response: 'Translated text from mocked endpoint' }),
       });
       return;
     });
-    harness.context.route('**/layout/augment', async (route) => {
-      layoutAugmentCallCount += 1;
-      if (layoutAugmentCallCount === 2) {
+    harness.context.route('**:5002/health', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok' }),
+      });
+    });
+    harness.context.route('**:5002/layout/augment', async (route) => {
+      if (failAugment) {
         await route.fulfill({
           status: 500,
           contentType: 'application/json',
@@ -56,7 +60,7 @@ test('Action badge updates for OCR run success, error, and clear-on-results-open
         });
         return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      // await new Promise((resolve) => setTimeout(resolve, 1200));
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -81,15 +85,19 @@ test('Action badge updates for OCR run success, error, and clear-on-results-open
 
     await setBadgeText(harness.serviceWorker, '');
 
+    slowInference = true;
+    failAugment = false;
+
     const successRunPromise = sendRuntimeMessageWithTimeout(page, {
       type: 'RUN_OCR_TRANSLATE',
       imageData: 'data:image/png;base64,aGVsbG8=',
       configOverride: {
         ollamaServiceUrl: 'http://localhost:11434/',
-        skipTranslation: false,
+        skipTranslation: true,
         timeoutMs: 5000,
         retryCount: 0,
         autoOpenPopupOnComplete: false,
+        debug: true,
       },
     }, 15000);
 
@@ -101,7 +109,7 @@ test('Action badge updates for OCR run success, error, and clear-on-results-open
       .toBe('OCR');
 
     const successResponse = await successRunPromise;
-    expect(successResponse?.status).toBe('success');
+    expect(successResponse?.status, { message: 'Expected success response status.' }).toBe('success');
 
     await expect
       .poll(async () => await readBadgeText(harness.serviceWorker), {
@@ -122,14 +130,17 @@ test('Action badge updates for OCR run success, error, and clear-on-results-open
       })
       .toBe('');
 
-    await harness.context.unroute('**/api/chat');
-    await harness.context.route('**/api/chat', async (route) => {
+    await harness.context.unroute('**/api/generate');
+    await harness.context.route('**/api/generate', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
         body: JSON.stringify({ error: 'forced error for badge runtime test' }),
       });
     });
+
+    slowInference = false;
+    failAugment = true;
 
     const errorResponse = await sendRuntimeMessageWithTimeout(page, {
       type: 'RUN_OCR_TRANSLATE',

@@ -3,17 +3,17 @@ import { test, expect } from '@playwright/test';
 import { launchRuntimeHarness, sendRuntimeMessageWithTimeout } from './helpers/extension-runtime';
 
 
-test('Returns runtime error when Ollama endpoint responds with server failures and layout inference is disabled', async ({}, testInfo) => {
+test('Returns runtime error when Ollama endpoint responds with server failures and layout inference is disabled', async () => {
   const harness = await launchRuntimeHarness('visibabel-negative-e2e');
 
-  await harness.context.route('**/api/chat', async (route) => {
+  await harness.context.route('**:11434/api/generate', async (route) => {
     await route.fulfill({
       status: 500,
       contentType: 'application/json',
       body: JSON.stringify({ error: 'upstream unavailable' }),
     });
   });
-  await harness.context.route('**/api/generate', async (route) => {
+  await harness.context.route('**:11434/api/generate', async (route) => {
     await route.fulfill({
       status: 500,
       contentType: 'application/json',
@@ -48,7 +48,16 @@ test('Returns runtime error when Ollama endpoint responds with server failures a
 test('Returns runtime error when layout endpoint responds with server failures and layout inference is enabled', async ({}) => {
   const harness = await launchRuntimeHarness('visibabel-negative-layout-e2e');
 
-  await harness.context.route('**/layout/augment', async (route) => {
+  await harness.context.route('**:11434/api/generate', async (route) => {
+    // Simulate waiting for glm-ocr response
+    await new Promise((resolve) => setTimeout(resolve, 3500));
+    await route.fulfill({
+      status: 408,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'request timeout' }),
+    })
+  });
+  await harness.context.route('**:5002/layout/augment', async (route) => {
     await route.fulfill({
       status: 422,
       contentType: 'application/json',

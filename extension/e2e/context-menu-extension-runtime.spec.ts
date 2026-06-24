@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 test('Context menu action appears and triggers workflow', async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const extensionPath = path.resolve(__dirname, '../../');
+  const extensionPath = path.resolve(__dirname, '../');
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visibabel-contextmenu-e2e-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
@@ -26,7 +26,6 @@ test('Context menu action appears and triggers workflow', async () => {
     if (!serviceWorker) {
       serviceWorker = await context.waitForEvent('serviceworker', { timeout: 15000 });
     }
-    const extensionId = new URL(serviceWorker.url()).host;
 
     // Open a test page with an image
     const page = await context.newPage();

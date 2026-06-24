@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 test('Service worker is active and logs background events', async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const extensionPath = path.resolve(__dirname, '../../');
+  const extensionPath = path.resolve(__dirname, '../');
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'visibabel-sw-e2e-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',

@@ -46,8 +46,8 @@ test.describe('endpoint mode helper', () => {
   });
 
   test('falls back to mock when required endpoint probe fails in auto mode and emits warning', async () => {
-    delete process.env.VISIBABEL_ENDPOINT_MODE;
-    delete process.env.VISIBABEL_FAIL_ON_FALLBACK;
+    process.env.VISIBABEL_ENDPOINT_MODE = 'auto';
+    process.env.VISIBABEL_FAIL_ON_FALLBACK = 'false';
 
     const warnings: string[] = [];
     const originalWarn = console.warn;

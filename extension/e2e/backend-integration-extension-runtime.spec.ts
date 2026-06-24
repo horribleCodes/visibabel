@@ -19,7 +19,7 @@ async function runBackendRequestCase(enableLayoutInference: boolean, testInfo: a
     testInfo,
     ['ollama', 'layout'],
     () => {
-      harness.context.route('**/api/chat', async (route) => {
+      harness.context.route('**/api/generate', async (route) => {
         chatCalls += 1;
         await route.fulfill({
           status: 200,

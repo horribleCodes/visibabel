@@ -16,7 +16,7 @@ async function runTabRegionCase(enableLayoutInference: boolean, testInfo: any): 
   let layoutAugmentCalls = 0;
 
   await setupEndpointMode(testInfo, ['ollama', 'layout'], () => {
-    harness.context.route('**/api/chat', async (route) => {
+    harness.context.route('**/api/generate', async (route) => {
       chatCalls += 1;
       await route.fulfill({
         status: 200,

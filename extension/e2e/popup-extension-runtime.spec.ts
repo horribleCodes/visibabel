@@ -3,11 +3,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setupEndpointMode } from './helpers/endpoint-mode-helper';
 
-test('menu loads in real extension runtime without missing internal resources', async () => {
+test('menu loads in real extension runtime without missing internal resources', async ({}, testInfo) => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const extensionPath = path.resolve(__dirname, '../../');
+  const extensionPath = path.resolve(__dirname, '../');
   const menuScriptPath = path.join(extensionPath, 'dist', 'menu', 'menu.js');
 
   expect(fs.existsSync(menuScriptPath)).toBe(true);
@@ -20,6 +21,23 @@ test('menu loads in real extension runtime without missing internal resources', 
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,
     ],
+  });
+
+  await setupEndpointMode(testInfo, ['ollama', 'layout'], () => {
+    context.route('**:11434/api/tags', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ models: [{ name: 'glm-ocr:latest' }, { name: 'kaelri/hy-mt2:1.8b' }] }),
+      });
+    });
+    context.route('**:5002/health', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok' }),
+      });
+    });
   });
 
   const requestFailures: string[] = [];

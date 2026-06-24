@@ -16,7 +16,7 @@ export async function launchRuntimeHarness(prefix: string): Promise<RuntimeHarne
   // ESM-compatible path resolution
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const extensionPath = path.resolve(__dirname, '../../../');
+  const extensionPath = path.resolve(__dirname, '../../');
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `${prefix}-`));
 
   const context = await chromium.launchPersistentContext(userDataDir, {

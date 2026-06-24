@@ -7,7 +7,7 @@ import { launchRuntimeHarness } from './helpers/extension-runtime';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SAMPLE_IMAGE_PATH = path.resolve(__dirname, '../../../resources/test_2.png');
+const SAMPLE_IMAGE_PATH = path.resolve(__dirname, '../../resources/test_2.png');
 const SAMPLE_IMAGE_DATA = `data:image/png;base64,${fs.readFileSync(SAMPLE_IMAGE_PATH).toString('base64')}`;
 
 type OverlayRatios = {

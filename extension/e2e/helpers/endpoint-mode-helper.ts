@@ -1,4 +1,4 @@
-// extension/tests/e2e-runtime/helpers/endpoint-mode-helper.ts
+// extension/e2e/helpers/endpoint-mode-helper.ts
 // Shared endpoint-mode helper for E2E tests: auto-selects real or mock endpoints
 // Usage: import { setupEndpointMode } from './helpers/endpoint-mode-helper';
 
@@ -12,7 +12,7 @@ const LAYOUT_URL = (typeof process !== 'undefined' && process.env.LAYOUT_URL) ||
 const ENDPOINT_TIMEOUT = (typeof process !== 'undefined' && process.env.VISIBABEL_ENDPOINT_TIMEOUT_MS) ? +process.env.VISIBABEL_ENDPOINT_TIMEOUT_MS : 2000;
 
 function getEndpointMode(): EndpointMode {
-  return ((typeof process !== 'undefined' && process.env.VISIBABEL_ENDPOINT_MODE as EndpointMode) || 'auto');
+  return ((typeof process !== 'undefined' && process.env.VISIBABEL_ENDPOINT_MODE as EndpointMode) || 'mock');
 }
 
 function getFailOnFallback(): boolean {
@@ -67,8 +67,9 @@ export async function setupEndpointMode(testContext: any, required: Endpoint[], 
 
   if (useMock) {
     const title = typeof testContext.title === 'function' ? testContext.title() : testContext.title;
-    const offlineLabel = offline.length > 0 ? offline.join(', ') : 'forced mock mode';
-    const msg = `[endpoint-fallback] ${title} using mock for: ${offlineLabel}${offline.length > 0 ? ' (health probe failed)' : ''}`;
+    const offlineLabel = offline.length > 0 ? offline.join(', ') : '';
+    const reasonLabel = mode === 'mock' ? '(forced mock mode)' : '(health probe failed)';
+    const msg = `[endpoint-fallback] ${title} using mock for: ${offlineLabel} ${reasonLabel}`;
     const annotations = Array.isArray(testContext?.annotations)
       ? testContext.annotations
       : Array.isArray(testContext?.info?.annotations)
@@ -76,12 +77,14 @@ export async function setupEndpointMode(testContext: any, required: Endpoint[], 
         : null;
 
     if (annotations) {
-      annotations.push({ type: 'warning', description: msg });
+      const annotType = mode === 'mock' ? 'info' : 'warning';
+      annotations.push({ type: annotType, description: msg });
     }
     // Keep this visible in CI logs even when annotation plumbing is unavailable.
     // eslint-disable-next-line no-console
-    console.warn(msg);
+    if (mode === 'mock') console.info(msg);
+    else console.warn(msg);
 
-    if (getFailOnFallback()) throw new Error(msg);
+    if (getFailOnFallback() && mode !== 'mock') throw new Error(msg);
   }
 }

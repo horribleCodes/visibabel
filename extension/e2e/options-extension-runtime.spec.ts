@@ -9,7 +9,7 @@ import { setupEndpointMode } from './helpers/endpoint-mode-helper';
 test('options page loads in real extension runtime and shows defaults', async ({}, testInfo) => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const extensionPath = path.resolve(__dirname, '../../');
+  const extensionPath = path.resolve(__dirname, '../');
   const optionsScriptPath = path.join(extensionPath, 'dist', 'options', 'options.js');
   expect(fs.existsSync(optionsScriptPath)).toBe(true);
 
