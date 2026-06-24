@@ -15,3 +15,31 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: build-extension
+        name: Build extension
+        entry: npm --prefix ./extension run build:extension
+        language: system
+        files: ^extension/.*$
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: false
+        verbose: true
+      - id: ext-unit-tests
+        name: Extension unit tests
+        entry: npm --prefix ./extension run test:unit
+        language: system
+        files: |
+          (?x)^extension/(
+            src/.*|
+            package-lock.json|
+            jest.config.cjs|
+            tsconfig.json|
+            tsconfig.jest.json
+          )$
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: false
+        verbose: true
