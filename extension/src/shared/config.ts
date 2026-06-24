@@ -73,7 +73,9 @@ export function normalizeConfig(rawConfig: Partial<ExtensionConfig>): ExtensionC
   cfg.translatePromptTemplate = String(cfg.translatePromptTemplate || defaultConfig.translatePromptTemplate);
   cfg.targetLanguage = String(cfg.targetLanguage || defaultConfig.targetLanguage).trim();
   cfg.timeoutMs = Math.max(1000, Number(cfg.timeoutMs) || defaultConfig.timeoutMs);
-  cfg.retryCount = Math.max(0, Number(cfg.retryCount) || defaultConfig.retryCount);
+  cfg.retryCount = 'retryCount' in rawConfig
+    ? Math.max(0, Number(rawConfig.retryCount) || 0)
+    : defaultConfig.retryCount;
   cfg.maxImageSize = Math.max(128, Number(cfg.maxImageSize) || defaultConfig.maxImageSize);
   cfg.debug = !!cfg.debug;
   cfg.enableNotifications = cfg.enableNotifications !== false;
