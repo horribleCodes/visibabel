@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-extension-${{ hashFiles('extension/package-lock.json') }}
     - name: Run Playwright tests
       run: npm --prefix ./extension run test:e2e
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
