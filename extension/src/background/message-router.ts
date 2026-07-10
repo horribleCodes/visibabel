@@ -2,7 +2,7 @@ import { getConfig, normalizeConfig, saveConfig } from '../shared/config.js';
 import { getLastResult } from '../shared/storage.js';
 import { fetchOk } from '../shared/transport.js';
 import { listModelState, setModelLoadedState } from './model-lifecycle.js';
-import { runOcrAndPersist } from './pipeline.js';
+import { cancelActiveRun, hasActiveRun, runOcrAndPersist } from './pipeline.js';
 import { openOrFocusResultsWindow } from './popup-manager.js';
 import { captureRegionImage } from './region-capture.js';
 
@@ -56,6 +56,16 @@ export function registerRuntimeMessageRouter(): void {
           sendResponse({ status: 'error', error: error?.message || String(error) });
         });
       return true;
+    }
+
+    if (message?.type === 'CANCEL_RUN') {
+      sendResponse({ status: 'success', cancelled: cancelActiveRun() });
+      return false;
+    }
+
+    if (message?.type === 'GET_RUN_STATE') {
+      sendResponse({ status: 'success', running: hasActiveRun() });
+      return false;
     }
 
     if (message?.type === 'OPEN_RESULTS_WINDOW') {

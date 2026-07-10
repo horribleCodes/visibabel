@@ -91,6 +91,18 @@ export async function openResultsWindow(): Promise<void> {
   ensureSuccess(response, 'Failed to open results window.');
 }
 
+export async function cancelActiveRun(): Promise<boolean> {
+  const response = await sendRuntimeMessage<{ cancelled?: boolean }>({ type: 'CANCEL_RUN' });
+  const success = ensureSuccess(response, 'Failed to cancel run.');
+  return success.cancelled === true;
+}
+
+export async function getRunState(): Promise<boolean> {
+  const response = await sendRuntimeMessage<{ running?: boolean }>({ type: 'GET_RUN_STATE' });
+  const success = ensureSuccess(response, 'Failed to load run state.');
+  return success.running === true;
+}
+
 export async function testEndpoint(configOverride?: Partial<ExtensionConfig>): Promise<void> {
   const response = await sendRuntimeMessage<{}>({ type: 'TEST_ENDPOINT', configOverride });
   ensureSuccess(response, 'Failed to connect.');

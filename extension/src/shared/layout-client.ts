@@ -5,7 +5,8 @@ import { resolveLayoutServiceUrl } from '../shared/service-health.js';
 export async function fetchLayoutAugment(
   base64Image: string,
   config: ExtensionConfig,
-  _parserConfig: LayoutParserConfig
+  _parserConfig: LayoutParserConfig,
+  externalSignal?: AbortSignal,
 ): Promise<LayoutAugmentResponse> {
   const url = new URL('layout/augment', resolveLayoutServiceUrl(config));
   const timeoutMs = config.timeoutMs || 60000;
@@ -17,6 +18,14 @@ export async function fetchLayoutAugment(
   };
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort);
+    }
+  }
   try {
     const response = await fetch(url.toString(), {
       method: 'POST',
@@ -30,5 +39,6 @@ export async function fetchLayoutAugment(
     return await response.json();
   } finally {
     clearTimeout(timeoutId);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
 }

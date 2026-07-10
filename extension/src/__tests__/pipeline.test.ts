@@ -234,7 +234,7 @@ describe('Pipeline RESULT_UPDATED broadcast', () => {
     await runOcrAndPersist(originalWebp, { debug: false });
 
     expect(mockedPrepareImageDataForEndpoints).toHaveBeenCalledWith(originalWebp);
-    expect(mockedRunOcrTranslation).toHaveBeenCalledWith(convertedJpeg, expect.any(Object));
+    expect(mockedRunOcrTranslation).toHaveBeenCalledWith(convertedJpeg, expect.any(Object), expect.anything());
     expect(mockedSaveLastResult).toHaveBeenCalledWith(
       expect.objectContaining({
         source_image_data: originalWebp,

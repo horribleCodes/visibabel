@@ -70,7 +70,7 @@ async function buildHttpError(response: Response, pathLabel: string): Promise<Er
   return new Error(`HTTP ${response.status} at ${pathLabel}.${details}`.trim());
 }
 
-async function withRetry<T>(operation: () => Promise<T>, retryCount: number): Promise<T> {
+async function withRetry<T>(operation: () => Promise<T>, retryCount: number, externalSignal?: AbortSignal): Promise<T> {
   let lastError: unknown = null;
   const attempts = Math.max(1, Number(retryCount) + 1);
 
@@ -79,7 +79,7 @@ async function withRetry<T>(operation: () => Promise<T>, retryCount: number): Pr
       return await operation();
     } catch (error) {
       lastError = error;
-      if (attempt >= attempts) {
+      if (externalSignal?.aborted || attempt >= attempts) {
         throw error;
       }
     }
@@ -88,10 +88,25 @@ async function withRetry<T>(operation: () => Promise<T>, retryCount: number): Pr
   throw lastError || new Error('Request failed.');
 }
 
-async function postJsonWithTimeout(url: string, body: unknown, timeoutMs: number, retryCount: number, pathLabel: string): Promise<any> {
+async function postJsonWithTimeout(
+  url: string,
+  body: unknown,
+  timeoutMs: number,
+  retryCount: number,
+  pathLabel: string,
+  externalSignal?: AbortSignal,
+): Promise<any> {
   return withRetry(async () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const onExternalAbort = () => controller.abort();
+    if (externalSignal) {
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else {
+        externalSignal.addEventListener('abort', onExternalAbort);
+      }
+    }
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -107,16 +122,31 @@ async function postJsonWithTimeout(url: string, body: unknown, timeoutMs: number
       return await response.json();
     } finally {
       clearTimeout(timeoutId);
+      externalSignal?.removeEventListener('abort', onExternalAbort);
     }
-  }, retryCount);
+  }, retryCount, externalSignal);
 }
 
-async function runChatRequest(endpointBase: string, body: unknown, timeoutMs: number, retryCount: number, pathLabel: string): Promise<any> {
-  return postJsonWithTimeout(`${endpointBase}/api/chat`, body, timeoutMs, retryCount, pathLabel || '/api/chat');
+async function runChatRequest(
+  endpointBase: string,
+  body: unknown,
+  timeoutMs: number,
+  retryCount: number,
+  pathLabel: string,
+  signal?: AbortSignal,
+): Promise<any> {
+  return postJsonWithTimeout(`${endpointBase}/api/chat`, body, timeoutMs, retryCount, pathLabel || '/api/chat', signal);
 }
 
-async function runGenerateRequest(endpointBase: string, body: unknown, timeoutMs: number, retryCount: number, pathLabel: string): Promise<any> {
-  return postJsonWithTimeout(`${endpointBase}/api/generate`, body, timeoutMs, retryCount, pathLabel || '/api/generate');
+async function runGenerateRequest(
+  endpointBase: string,
+  body: unknown,
+  timeoutMs: number,
+  retryCount: number,
+  pathLabel: string,
+  signal?: AbortSignal,
+): Promise<any> {
+  return postJsonWithTimeout(`${endpointBase}/api/generate`, body, timeoutMs, retryCount, pathLabel || '/api/generate', signal);
 }
 
 async function runStep(
@@ -127,14 +157,15 @@ async function runStep(
   timeoutMs: number,
   retryCount: number,
   label: string,
+  signal?: AbortSignal,
 ): Promise<{ raw: any; text: string }> {
   if (mode === 'completion') {
-    const raw = await runGenerateRequest(endpointBase, generateBody, timeoutMs, retryCount, `/api/generate (${label})`);
+    const raw = await runGenerateRequest(endpointBase, generateBody, timeoutMs, retryCount, `/api/generate (${label})`, signal);
     return { raw, text: typeof raw.response === 'string' ? raw.response.trim() : '' };
   }
 
   if (mode === 'chat') {
-    const raw = await runChatRequest(endpointBase, chatBody, timeoutMs, retryCount, `/api/chat (${label})`);
+    const raw = await runChatRequest(endpointBase, chatBody, timeoutMs, retryCount, `/api/chat (${label})`, signal);
     return {
       raw,
       text: raw?.message && typeof raw.message.content === 'string' ? raw.message.content.trim() : '',
@@ -143,7 +174,7 @@ async function runStep(
 
   let chatError: unknown = null;
   try {
-    const raw = await runChatRequest(endpointBase, chatBody, timeoutMs, retryCount, `/api/chat (${label})`);
+    const raw = await runChatRequest(endpointBase, chatBody, timeoutMs, retryCount, `/api/chat (${label})`, signal);
     const text = raw?.message && typeof raw.message.content === 'string' ? raw.message.content.trim() : '';
     if (text) {
       return { raw, text };
@@ -155,7 +186,7 @@ async function runStep(
     });
   }
 
-  const fallbackRaw = await runGenerateRequest(endpointBase, generateBody, timeoutMs, retryCount, `/api/generate (${label} fallback)`);
+  const fallbackRaw = await runGenerateRequest(endpointBase, generateBody, timeoutMs, retryCount, `/api/generate (${label} fallback)`, signal);
   const fallbackText = typeof fallbackRaw.response === 'string' ? fallbackRaw.response.trim() : '';
   if (!fallbackText && chatError) {
     throw new Error(`${label} step produced no text. Chat failed first: ${(chatError as Error).message || String(chatError)}`);
@@ -164,7 +195,7 @@ async function runStep(
   return { raw: fallbackRaw, text: fallbackText };
 }
 
-async function runOcrStep(base64Image: string, config: ExtensionConfig): Promise<{ raw: any; text: string }> {
+async function runOcrStep(base64Image: string, config: ExtensionConfig, signal?: AbortSignal): Promise<{ raw: any; text: string }> {
   const endpointBase = String(config.ollamaServiceUrl || '').replace(/\/+$/, '');
   const ocrPrompt = buildPrompt(config.ocrPromptTemplate, {
     target_language: config.targetLanguage,
@@ -200,7 +231,7 @@ async function runOcrStep(base64Image: string, config: ExtensionConfig): Promise
     options: ocrOptions,
   };
 
-  const output = await runStep(endpointBase, config.ocrType, chatBody, generateBody, config.timeoutMs, config.retryCount, 'ocr');
+  const output = await runStep(endpointBase, config.ocrType, chatBody, generateBody, config.timeoutMs, config.retryCount, 'ocr', signal);
 
   // Post-process output to remove extraneous text/artifacts
   const processedText = cleanOcrText(output.text, { dedupe: config.enableOcrDedupe });
@@ -210,7 +241,7 @@ async function runOcrStep(base64Image: string, config: ExtensionConfig): Promise
   return { ...output, text: processedText };
 }
 
-async function runTranslateStep(sourceText: string, config: ExtensionConfig): Promise<{ raw: any; text: string }> {
+async function runTranslateStep(sourceText: string, config: ExtensionConfig, signal?: AbortSignal): Promise<{ raw: any; text: string }> {
   const endpointBase = String(config.ollamaServiceUrl || '').replace(/\/+$/, '');
   const translatePrompt = buildPrompt(config.translatePromptTemplate, {
     target_language: config.targetLanguage,
@@ -236,7 +267,7 @@ async function runTranslateStep(sourceText: string, config: ExtensionConfig): Pr
     options: { temperature: 0 },
   };
 
-  const output = await runStep(endpointBase, config.translateType, chatBody, generateBody, config.timeoutMs, config.retryCount, 'translate');
+  const output = await runStep(endpointBase, config.translateType, chatBody, generateBody, config.timeoutMs, config.retryCount, 'translate', signal);
   if (!output.text) {
     throw new Error('Translation step produced no text.');
   }
@@ -244,7 +275,11 @@ async function runTranslateStep(sourceText: string, config: ExtensionConfig): Pr
   return output;
 }
 
-export async function runOcrTranslation(imageData: string, configOverride?: Partial<ExtensionConfig>): Promise<any> {
+export async function runOcrTranslation(
+  imageData: string,
+  configOverride?: Partial<ExtensionConfig>,
+  signal?: AbortSignal,
+): Promise<any> {
   const baseConfig = await getConfig();
   const config = normalizeConfig(Object.assign({}, baseConfig, configOverride || {}));
   const base64Image = extractBase64Payload(imageData);
@@ -253,7 +288,7 @@ export async function runOcrTranslation(imageData: string, configOverride?: Part
     throw new Error('No image data provided');
   }
 
-  const ocr = await runOcrStep(base64Image, config);
+  const ocr = await runOcrStep(base64Image, config, signal);
   const ocrText = String(ocr.text || '').trim();
   if (!ocrText) {
     throw new NoTextDetectedError();
@@ -281,7 +316,7 @@ export async function runOcrTranslation(imageData: string, configOverride?: Part
     };
   }
 
-  const translated = await runTranslateStep(ocrText, config);
+  const translated = await runTranslateStep(ocrText, config, signal);
   return {
     result: {
       ocr_text: ocrText,

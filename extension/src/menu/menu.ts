@@ -5,15 +5,19 @@ import { setBadgeState } from '../shared/ui/badge.js';
 import { createDebugLogger } from '../shared/ui/debug-log.js';
 import { readServiceHealth } from '../shared/service-health.js';
 import {
+  cancelActiveRun as cancelActiveRunRequest,
+  getRunState,
   getRuntimeConfig,
   openResultsWindow,
   runOcrTranslate as runOcrTranslateRequest,
   runOcrTranslateRegion,
   saveRuntimeConfig,
 } from '../shared/runtime-api.js';
+import { RUN_CANCELLED_MESSAGE } from '../shared/run-errors.js';
 
 const captureBtn = requiredEl<HTMLButtonElement>('capture-tab');
 const selectBtn = requiredEl<HTMLButtonElement>('select-region');
+const cancelRunBtn = requiredEl<HTMLButtonElement>('cancel-run');
 const openResultsBtn = requiredEl<HTMLButtonElement>('open-results');
 const openOptionsBtn = requiredEl<HTMLButtonElement>('open-options');
 const statusDiv = requiredEl<HTMLElement>('status');
@@ -69,6 +73,10 @@ function refreshCaptureActionsState(): void {
   });
 }
 
+function setCancelRunVisible(visible: boolean): void {
+  cancelRunBtn.classList.toggle('hidden', !visible);
+}
+
 function refreshHealthIndicators(): void {
   setBadgeState(ollamaBadge, 'loading');
   setBadgeState(ocrSdkBadge, 'loading');
@@ -112,6 +120,20 @@ getRuntimeConfig()
     setBadgeState(ocrSdkBadge, 'degraded', 'Not configured');
     refreshCaptureActionsState();
   });
+
+getRunState()
+  .then((running) => {
+    setCancelRunVisible(running);
+  })
+  .catch(() => {
+    setCancelRunVisible(false);
+  });
+
+chrome.runtime.onMessage.addListener((message: any) => {
+  if (message?.type === 'RUN_STATE_CHANGED') {
+    setCancelRunVisible(!!message.running);
+  }
+});
 
 window.addEventListener('focus', () => {
   refreshCaptureActionsState();
@@ -233,6 +255,10 @@ selectBtn.addEventListener('click', () => {
               status.success('Done. Open Results to view output.');
             })
             .catch((error: any) => {
+              if (error?.message === RUN_CANCELLED_MESSAGE) {
+                status.info(RUN_CANCELLED_MESSAGE);
+                return;
+              }
               status.error(error?.message || 'Failed to process selected region.');
             });
         } else if (response?.imageData) {
@@ -245,6 +271,22 @@ selectBtn.addEventListener('click', () => {
         status.error(error?.message || 'Region selection unavailable on this page.');
       });
   });
+});
+
+cancelRunBtn.addEventListener('click', () => {
+  status.info('Cancelling run...');
+  cancelRunBtn.disabled = true;
+  cancelActiveRunRequest()
+    .then((cancelled) => {
+      status.info(cancelled ? RUN_CANCELLED_MESSAGE : 'No active run to cancel.');
+      setCancelRunVisible(false);
+    })
+    .catch((error: any) => {
+      status.error(error?.message || 'Failed to cancel run.');
+    })
+    .finally(() => {
+      cancelRunBtn.disabled = false;
+    });
 });
 
 openResultsBtn.addEventListener('click', () => {
@@ -268,6 +310,10 @@ function runOcrTranslate(imageData: string): void {
       status.success('Done. Open Results to view output.');
     })
     .catch((error: any) => {
+      if (error?.message === RUN_CANCELLED_MESSAGE) {
+        status.info(RUN_CANCELLED_MESSAGE);
+        return;
+      }
       status.error(error?.message || 'Error.');
     });
 }

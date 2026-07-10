@@ -9,6 +9,22 @@ import { shouldUseLayoutAugment, getParserConfig } from '../shared/layout-seam.j
 import { fetchLayoutAugment } from '../shared/layout-client.js';
 import { parseLayoutAugment } from '../shared/layout-parser.js';
 import { prepareImageDataForEndpoints } from '../shared/image-source.js';
+import { RunCancelledError } from '../shared/run-errors.js';
+
+let activeRunController: AbortController | null = null;
+
+// Aborts the in-flight OCR/translation run, if any. Returns whether a run was cancelled.
+export function cancelActiveRun(): boolean {
+  if (!activeRunController) {
+    return false;
+  }
+  activeRunController.abort();
+  return true;
+}
+
+export function hasActiveRun(): boolean {
+  return activeRunController !== null;
+}
 
 function broadcastResultUpdated(debug: boolean): void {
   try {
@@ -22,6 +38,17 @@ function broadcastResultUpdated(debug: boolean): void {
     if (debug) {
       logDebug('RESULT_UPDATED broadcast threw', error);
     }
+  }
+}
+
+function broadcastRunStateChanged(running: boolean): void {
+  try {
+    chrome.runtime.sendMessage({ type: 'RUN_STATE_CHANGED', running }, () => {
+      // No listeners (e.g. menu popup closed) is expected; swallow the resulting error.
+      void chrome.runtime.lastError;
+    });
+  } catch {
+    // Ignore - background context may not always be able to broadcast (e.g. during teardown).
   }
 }
 
@@ -39,7 +66,10 @@ function attachSourceImage(result: any, imageData: string): any {
 }
 
 export async function runOcrAndPersist(imageData: string, configOverride?: Record<string, unknown>): Promise<any> {
+  const controller = new AbortController();
+  activeRunController = controller;
   setBadge('ocr');
+  broadcastRunStateChanged(true);
   let debug = false;
   let storedImageData = imageData;
   try {
@@ -65,8 +95,8 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
         : endpointImageData;
       const parserConfig = getParserConfig(config);
       const [ocrOutput, layoutRaw] = await Promise.all([
-        runOcrTranslation(endpointImageData, config),
-        fetchLayoutAugment(base64Image, config, parserConfig),
+        runOcrTranslation(endpointImageData, config, controller.signal),
+        fetchLayoutAugment(base64Image, config, parserConfig, controller.signal),
       ]);
       const parsed = parseLayoutAugment(layoutRaw, parserConfig);
       const hasWrappedOcrOutput =
@@ -85,7 +115,7 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
         },
       };
     } else {
-      runOutput = await runOcrTranslation(endpointImageData, configOverride);
+      runOutput = await runOcrTranslation(endpointImageData, configOverride, controller.signal);
     }
 
     if (debug) logDebug('OCR/translation run output', runOutput);
@@ -103,6 +133,11 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
     if (debug) logDebug('Auto-opened results window if enabled', config);
     return { result, runId };
   } catch (err) {
+    if (controller.signal.aborted) {
+      setBadge('clear');
+      if (debug) logDebug('OCR/translation run cancelled', err);
+      throw new RunCancelledError();
+    }
     if (err instanceof BadResponseError && err.result) {
       await saveLastResult(attachSourceImage(err.result, storedImageData));
       broadcastResultUpdated(debug);
@@ -110,5 +145,10 @@ export async function runOcrAndPersist(imageData: string, configOverride?: Recor
     setBadge('error');
     if (debug) logDebug('OCR/translation run error', err);
     throw err;
+  } finally {
+    if (activeRunController === controller) {
+      activeRunController = null;
+    }
+    broadcastRunStateChanged(false);
   }
 }

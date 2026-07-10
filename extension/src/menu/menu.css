@@ -113,6 +113,19 @@ button:disabled {
   background: #f3f4f6;
 }
 
+button.danger {
+  border-color: #f3a8a8;
+  color: #991b1b;
+}
+
+button.danger:hover {
+  background: #feecec;
+}
+
+.hidden {
+  display: none;
+}
+
 #status {
   min-height: 18px;
   font-size: 12px;
