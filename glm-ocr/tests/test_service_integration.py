@@ -3,10 +3,10 @@
 
 
 import base64
-import requests
 import sys
 from pathlib import Path
 
+import requests
 from ollama_request_helper import warm_up_ollama_ocr
 
 TESTS_DIR = Path(__file__).resolve().parent
